@@ -1,0 +1,14 @@
+{
+  "name": "meteor-blaster",
+  "version": "1.0.0",
+  "description": "2D spaceship vs meteors game — Node.js + HTML5 Canvas",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}

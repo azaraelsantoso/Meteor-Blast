@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Meteor Blaster - Space Arcade</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #070712;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: #fff;
+    }
+
+    #game-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #gameCanvas {
+      display: block;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+      cursor: crosshair;
+      box-shadow: 0 0 40px rgba(0, 220, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    /* Top Action Bar */
+    .top-bar {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      background: rgba(18, 24, 38, 0.85);
+      color: #00dcff;
+      border: 1px solid rgba(0, 220, 255, 0.4);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn:hover {
+      background: rgba(0, 220, 255, 0.2);
+      border-color: #00dcff;
+      transform: translateY(-1px);
+      box-shadow: 0 0 16px rgba(0, 220, 255, 0.4);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0099ff, #00e1ff);
+      color: #050b14;
+      border: none;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #33adff, #47e7ff);
+      box-shadow: 0 0 20px rgba(0, 220, 255, 0.7);
+    }
+
+    /* Modal Backdrop */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 7, 16, 0.85);
+      backdrop-filter: blur(6px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid rgba(0, 220, 255, 0.35);
+      box-shadow: 0 0 35px rgba(0, 220, 255, 0.25);
+      border-radius: 14px;
+      width: 90%;
+      max-width: 520px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #00dcff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 1px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: #718096;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 0 6px;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: #fff; }
+
+    /* Leaderboard Table */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      align-self: flex-start;
+      margin-top: -6px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #32c850;
+      box-shadow: 0 0 6px #32c850;
+    }
+    .status-dot.yellow {
+      background: #ffdc32;
+      box-shadow: 0 0 6px #ffdc32;
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .leaderboard-table th {
+      text-align: left;
+      padding: 8px 10px;
+      color: #718096;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .leaderboard-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .leaderboard-table tr:hover {
+      background: rgba(0, 220, 255, 0.05);
+    }
+
+    .rank-1 { color: #ffdc32; font-weight: bold; }
+    .rank-2 { color: #e2e8f0; font-weight: bold; }
+    .rank-3 { color: #ff8c00; font-weight: bold; }
+
+    .score-cell {
+      color: #00dcff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: #718096;
+      font-size: 13px;
+    }
+
+    /* Submit Score Form */
+    .score-banner {
+      background: rgba(0, 220, 255, 0.08);
+      border: 1px solid rgba(0, 220, 255, 0.2);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .score-banner-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ffdc32;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-input {
+      background: #080d1a;
+      border: 1px solid rgba(0, 220, 255, 0.3);
+      padding: 10px 14px;
+      border-radius: 6px;
+      color: #fff;
+      font-family: 'Consolas', monospace;
+      font-size: 16px;
+      font-weight: bold;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      border-color: #00dcff;
+      box-shadow: 0 0 12px rgba(0, 220, 255, 0.4);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Top Action Buttons -->
+    <div class="top-bar">
+      <button id="btn-open-leaderboard" class="btn" title="View High Scores (Shortcut: L)">
+        🏆 LEADERBOARD [L]
+      </button>
+    </div>
+
+    <!-- Leaderboard Modal Overlay -->
+    <div id="modal-leaderboard" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">🏆 TOP PILOTS LEADERBOARD</div>
+          <button id="btn-close-leaderboard" class="modal-close">&times;</button>
+        </div>
+
+        <div id="leaderboard-status" class="status-pill">
+          <span class="status-dot"></span>
+          <span id="status-text">Memeriksa koneksi Supabase...</span>
+        </div>
+
+        <div style="max-height: 320px; overflow-y: auto;">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">Rank</th>
+                <th>Pilot</th>
+                <th style="text-align: right;">Score</th>
+                <th style="text-align: right; width: 60px;">Level</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+              <tr>
+                <td colspan="4" class="empty-state">Memuat data leaderboard...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <button id="btn-refresh-leaderboard" class="btn" style="padding: 6px 12px; font-size: 12px;">
+            🔄 Refresh
+          </button>
+          <button id="btn-close-leaderboard-2" class="btn btn-primary" style="padding: 6px 16px;">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Score Modal Overlay -->
+    <div id="modal-submit-score" class="modal-overlay">
+      <div class="modal-card" style="max-width: 440px;">
+        <div class="modal-header">
+          <div class="modal-title">🚀 SIMPAN SKOR ANDA</div>
+          <button id="btn-close-submit" class="modal-close">&times;</button>
+        </div>
+
+        <div class="score-banner">
+          <div style="font-size: 12px; color: #a0aec0; letter-spacing: 1px;">FINAL MISSION SCORE</div>
+          <div id="submit-score-display" class="score-banner-value">0</div>
+          <div id="submit-level-display" style="font-size: 12px; color: #00dcff; margin-top: 4px;">LEVEL 1</div>
+        </div>
+
+        <form id="score-form" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="pilot-name-input">Callsign / Nama Pilot:</label>
+            <input type="text" id="pilot-name-input" class="form-input" maxlength="16" placeholder="PILOT-1" required autofocus />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="btn-skip-submit" class="btn">Lewati</button>
+            <button type="submit" id="btn-confirm-submit" class="btn btn-primary">
+              💾 Simpan ke Supabase
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

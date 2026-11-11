@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start Node.js Game Server",
+            "program": "${workspaceFolder}/server.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome (Meteor Blaster)",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/public"
+        },
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Launch Python Game (Pygame)",
+            "program": "${workspaceFolder}/space_shooter.py",
+            "console": "integratedTerminal"
+        }
+    ]
+}

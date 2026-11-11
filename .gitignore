@@ -1,0 +1,25 @@
+# Environment variables (JANGAN DI-UPLOAD KE GITHUB - BERISI API KEY)
+.env
+
+# Binary Node executable
+node.exe
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Operating System files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor temporary files
+.idea/
+*.suo
+*.user
