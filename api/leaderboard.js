@@ -36,8 +36,13 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const data = await supabaseFetch('leaderboard?select=*&order=score.desc&limit=10');
-      return res.status(200).json(data);
+      const data = await supabaseFetch('leaderboard?select=id,player_name,score,level,created_at&order=score.desc&limit=10');
+      return res.status(200).json({
+        success: true,
+        configured: true,
+        source: 'supabase',
+        scores: data
+      });
     }
 
     if (req.method === 'POST') {
@@ -63,7 +68,11 @@ module.exports = async function handler(req, res) {
         body: JSON.stringify(insertData)
       });
 
-      return res.status(201).json(result);
+      return res.status(201).json({
+        success: true,
+        source: 'supabase',
+        entry: Array.isArray(result) ? result[0] : result
+      });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

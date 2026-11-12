@@ -2289,7 +2289,7 @@ const LeaderboardUI = {
       const res = await fetch('/api/leaderboard');
       const data = await res.json();
 
-      const scores = data.scores || [];
+      const scores = Array.isArray(data) ? data : (data.scores || []);
       if (scores.length === 0) {
         this.tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada skor yang tercatat. Jadilah yang pertama!</td></tr>';
         return;
