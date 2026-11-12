@@ -10,46 +10,25 @@ Tersedia dalam 2 edisi:
 
 ## 🕹️ Fitur Utama
 
-- **Spaceship Movement**: Kendalikan pesawat ke atas/bawah untuk menghindari dan menghancurkan meteor.
-- **Meteor Lurus dari Kanan**: Seluruh meteor muncul secara acak dari sisi kanan dan bergerak lurus horizontal ke kiri dengan variasi ukuran, kecepatan, dan ketahanan (HP).
-- **Glowing Skill Orbs**: Bola energi bulat bercahaya muncul mengambang di area tengah pertempuran secara berkala:
-  - 🔵 **3× Shot** (Menembakkan 3 proyektil sekaligus)
-  - 🟠 **Damage +50%** (Meningkatkan daya hancur peluru)
-  - 🟢 **Speed +30%** (Meningkatkan kecepatan gerak pesawat)
-  - 🟡 **Rapid Fire** (Mempercepat jeda tembakan / firing rate)
-  - 🟣 **Energy Shield** (Menahan 1 kali tabrakan meteor)
-- **3 Lives System**: Memiliki 3 nyawa dengan efek *invincibility frames* saat tertabrak.
-- **Leaderboard Online (Supabase)**: Simpan skor dan callsign pilot Anda ke cloud leaderboard global dan lihat peringkat 10 besar secara real-time.
-- **Efek Suara Prosedural**: Sintesis suara tembakan, pendorong mesin, ledakan, dan arpeggio kenaikan level menggunakan Web Audio API tanpa memerlukan file audio eksternal.
-
----
-
-## 🚀 Cara Menjalankan
-
-### Opsi A: Web Edition (Node.js) - Rekomendasi
-1. Pastikan Node.js sudah terpasang.
-2. Salin template konfigurasi:
-   ```bash
-   cp .env.example .env
-   ```
-3. Buka file `.env` dan masukkan kredensial Supabase Anda (`SUPABASE_URL` dan `SUPABASE_KEY`).
-4. Jalankan script setup tabel di Supabase SQL Editor dari file `supabase_setup.sql`.
-5. Mulai server:
-   ```bash
-   node server.js
-   ```
-   *Atau di Windows, cukup klik dua kali file **`start-game.bat`**.*
-6. Buka browser di **http://localhost:3000**.
-
-### Opsi B: Desktop Edition (Python / Pygame)
-1. Install dependensi:
-   ```bash
-   pip install pygame
-   ```
-2. Jalankan game:
-   ```bash
-   python space_shooter.py
-   ```
+- **Base Defense (10.000 HP)**: Base pertahanan di sisi kiri memiliki 10.000 HP dengan kubah perisai energi. Setiap meteor atau alien yang lolos melewati batas kiri akan mengurangi HP base secara proporsional.
+- **Splitter Meteors**: Meteor besar yang berhasil dihancurkan akan terbelah menjadi 2 meteor kecil yang melesat maju.
+- **Musuh Tambahan (Kroco & Boss)**:
+  - 👾 **Kroco Alien Drone**: Drone pengintai yang bergerak lincah dan menembakkan proyektil laser ke arah pesawat.
+  - 👑 **Cyber Dreadnought Boss**: Muncul setiap beberapa wave dengan sirine peringatan, bar HP tebal, tembakan laser 3 arah, dan kemampuan memanggil bala bantuan.
+- **Kontrol 4 Arah**: Pesawat kini dapat bermanuver bebas: Atas, Bawah, Maju (Kanan), dan Mundur (Kiri).
+- **Hangar & Upgrade Permanen**: Gunakan **⚡ Energy** yang didapat setelah setiap pertandingan untuk membeli upgrade permanen di Main Menu:
+  - 🛸 **Wingman Drones**: Drone tempur mini yang terbang mendampingi pesawat utama dan ikut menembak.
+  - 🛡️ **Base Shield HP**: Meningkatkan HP markas (10k -> 13k -> 17k -> 22k).
+  - 💥 **Bullet Damage**: Meningkatkan damage proyektil (+30%, +70%, +120%).
+  - ⚡ **Gatling Overclock**: Mempercepat kecepatan serang (firerate).
+  - 🚀 **Engine Thrusters**: Meningkatkan kelincahan dan kecepatan gerak pesawat.
+- **Sistem Achievement (Misi)**: Selesaikan berbagai tantangan in-game untuk mengklaim hadiah bonus ⚡ Energy.
+- **Mode Multiplayer Co-Op (Room Code)**:
+  - Buat room dan bagikan kode 4 karakter kepada teman.
+  - Pemain lain cukup memasukkan kode room untuk bergabung bertarung bersama secara real-time.
+- **Glowing Skill Orbs**: Bola energi bulat bercahaya muncul mengambang di area tengah pertempuran secara berkala (3x Shot, Damage Boost, Speed, Rapid Fire, Shield).
+- **Leaderboard Online (Supabase)**: Simpan skor dan callsign pilot Anda ke cloud leaderboard global secara real-time.
+- **Efek Suara Prosedural**: Sintesis Web Audio API retro untuk tembakan, ledakan, sirine boss, dan tabrakan.
 
 ---
 
@@ -57,11 +36,13 @@ Tersedia dalam 2 edisi:
 
 | Tombol | Aksi |
 |---|---|
-| **W** / **↑** | Gerak Ke Atas |
-| **S** / **↓** | Gerak Ke Bawah |
+| **W / A / S / D** atau **Panah** | Gerak 4 Arah (Atas, Bawah, Mundur, Maju) |
 | **SPACE** *(tahan)* | Tembak Otomatis (Auto-Fire) |
-| **L** | Buka / Tutup Leaderboard |
-| **P** / **ESC** | Pause Permainan |
+| **H** | Buka Hangar Upgrades |
+| **M** | Buka Menu Multiplayer |
+| **T** | Buka Daftar Achievement |
+| **L** | Buka Leaderboard |
+| **P / ESC** | Pause Permainan |
 
 ---
 
