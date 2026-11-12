@@ -33,9 +33,9 @@ const HANGAR_UPGRADES = {
     desc: 'Pesawat mini pendamping yang nempel dan ikut menembak',
     levels: [
       { level: 0, cost: 0,   val: 0, desc: 'Belum dipasang' },
-      { level: 1, cost: 150, val: 1, desc: '1 Drone pendamping (tembakan samping)' },
-      { level: 2, cost: 350, val: 2, desc: '2 Drone pendamping (atas & bawah)' },
-      { level: 3, cost: 750, val: 2, desc: '2 Drone dengan peluru plasma kembar' },
+      { level: 1, cost: 50,  val: 1, desc: '1 Drone pendamping (tembakan samping)' },
+      { level: 2, cost: 150, val: 2, desc: '2 Drone pendamping (atas & bawah)' },
+      { level: 3, cost: 350, val: 2, desc: '2 Drone dengan peluru plasma kembar' },
     ]
   },
   baseHP: {
@@ -43,10 +43,10 @@ const HANGAR_UPGRADES = {
     icon: '🏰',
     desc: 'Meningkatkan ketahanan dan total Darah Base utama',
     levels: [
-      { level: 0, cost: 0,   val: 10000, desc: '10.000 Max HP' },
-      { level: 1, cost: 100, val: 13000, desc: '13.000 Max HP (+30% Darah)' },
-      { level: 2, cost: 250, val: 17000, desc: '17.000 Max HP (+70% Darah)' },
-      { level: 3, cost: 600, val: 22000, desc: '22.000 Max HP (+120% Darah & Regenerasi)' },
+      { level: 0, cost: 0,   val: 15000, desc: '15.000 Max HP' },
+      { level: 1, cost: 40,  val: 22000, desc: '22.000 Max HP (+45% Darah)' },
+      { level: 2, cost: 120, val: 30000, desc: '30.000 Max HP (+100% Darah)' },
+      { level: 3, cost: 280, val: 42000, desc: '42.000 Max HP (+180% Darah)' },
     ]
   },
   damage: {
@@ -55,9 +55,9 @@ const HANGAR_UPGRADES = {
     desc: 'Meningkatkan daya hancur peluru tembakan dasar pesawat',
     levels: [
       { level: 0, cost: 0,   val: 1.0, desc: '1.0× Damage standar' },
-      { level: 1, cost: 120, val: 1.3, desc: '1.3× Damage (+30%)' },
-      { level: 2, cost: 300, val: 1.7, desc: '1.7× Damage (+70%)' },
-      { level: 3, cost: 700, val: 2.2, desc: '2.2× Damage (+120%)' },
+      { level: 1, cost: 50,  val: 1.4, desc: '1.4× Damage (+40%)' },
+      { level: 2, cost: 140, val: 1.9, desc: '1.9× Damage (+90%)' },
+      { level: 3, cost: 320, val: 2.6, desc: '2.6× Damage (+160%)' },
     ]
   },
   fireRate: {
@@ -66,9 +66,9 @@ const HANGAR_UPGRADES = {
     desc: 'Mempercepat frekuensi tembakan (cooldown lebih singkat)',
     levels: [
       { level: 0, cost: 0,   val: 1.0, desc: 'Cooldown standar' },
-      { level: 1, cost: 120, val: 0.8, desc: 'Tembakan +25% lebih cepat' },
-      { level: 2, cost: 300, val: 0.6, desc: 'Tembakan +65% lebih cepat' },
-      { level: 3, cost: 700, val: 0.45, desc: 'Hyper-Gatling +120% lebih cepat' },
+      { level: 1, cost: 50,  val: 0.75, desc: 'Tembakan +33% lebih cepat' },
+      { level: 2, cost: 140, val: 0.55, desc: 'Tembakan +80% lebih cepat' },
+      { level: 3, cost: 320, val: 0.40, desc: 'Hyper-Gatling +150% lebih cepat' },
     ]
   },
   speed: {
@@ -76,9 +76,9 @@ const HANGAR_UPGRADES = {
     icon: '🚀',
     desc: 'Kecepatan manuver maju-mundur dan atas-bawah pesawat',
     levels: [
-      { level: 0, cost: 0,   val: 5.0, desc: 'Kecepatan standar 5.0' },
-      { level: 1, cost: 80,  val: 6.5, desc: 'Kecepatan 6.5 (+30%)' },
-      { level: 2, cost: 200, val: 8.0, desc: 'Kecepatan 8.0 (+60%)' },
+      { level: 0, cost: 0,   val: 5.5, desc: 'Kecepatan standar 5.5' },
+      { level: 1, cost: 30,  val: 7.0, desc: 'Kecepatan 7.0 (+27%)' },
+      { level: 2, cost: 90,  val: 8.5, desc: 'Kecepatan 8.5 (+55%)' },
     ]
   }
 };
@@ -541,11 +541,11 @@ class Ship {
     this.triple    = false;
     this.damage    = upgDmg;
     this.rapidMult = upgRate;
-    this.baseCd    = 18;
+    this.baseCd    = 13;
     this.shootCd   = 0;
 
-    this.lives      = 3;
-    this.shield     = false;
+    this.lives      = 4; // 4 Nyawa standar (lebih bersahabat)
+    this.shield     = true; // Mulai dengan 1 Pelindung Perisai Gratis!
     this.invincible = 0;
 
     this.shieldPulse = 0;
@@ -553,7 +553,7 @@ class Ship {
   }
 
   get speed()    { return this.baseSpeed * this.speedMult; }
-  get cooldown() { return Math.max(4, Math.floor(this.baseCd * this.rapidMult)); }
+  get cooldown() { return Math.max(3, Math.floor(this.baseCd * this.rapidMult)); }
 
   handleInput(keys, snd) {
     let moved = false;
@@ -611,11 +611,11 @@ class Ship {
     snd.hit();
     if (this.shield) {
       this.shield = false;
-      this.invincible = 90;
+      this.invincible = 120;
       return false;
     }
     this.lives--;
-    this.invincible = 90;
+    this.invincible = 120;
     return true;
   }
 
@@ -848,24 +848,24 @@ class Meteor {
     } else {
       const roll = Math.random();
       // Splitter / Tank Meteor besar (bisa membelah 2)
-      if (difficulty >= 1.6 && roll < 0.32) {
+      if (difficulty >= 2.0 && roll < 0.25) {
         this.type = 'tank';
         this.isSplitter = true; // BISA TERBELAH DUA SAAT HANCUR
-        this.radius = randInt(36, 48);
-        this.speed = Math.min(1.2 + difficulty * 0.3, 4.2);
-        this.hp = Math.max(4, Math.floor(this.radius * 0.16 * difficulty));
+        this.radius = randInt(32, 44);
+        this.speed = Math.min(0.9 + difficulty * 0.18, 2.4);
+        this.hp = Math.max(2, Math.floor(this.radius * 0.08 * difficulty));
         this.colorStr = '#42283c'; // Obsidian gelap
-      } else if (roll > 0.72) {
+      } else if (roll > 0.78) {
         this.type = 'fast';
-        this.radius = randInt(14, 22);
-        this.speed = Math.min(2.8 + difficulty * 0.55, 9.0);
+        this.radius = randInt(14, 20);
+        this.speed = Math.min(2.0 + difficulty * 0.32, 5.0);
         this.hp = 1;
         this.colorStr = '#ff4d4d'; // Merah cepat
       } else {
         this.type = 'normal';
-        this.radius = randInt(18, 32);
-        this.speed = Math.min(1.4 + difficulty * 0.5, 7.5);
-        this.hp = Math.max(1, Math.floor(this.radius * 0.1 * difficulty));
+        this.radius = randInt(18, 30);
+        this.speed = Math.min(1.1 + difficulty * 0.25, 3.8);
+        this.hp = Math.max(1, Math.floor(this.radius * 0.06 * difficulty));
         this.colorStr = choice(METEOR_PALETTES);
       }
       this.maxHp = this.hp;
@@ -969,10 +969,10 @@ class Meteor {
 
   // Base Damage jika lolos ke kiri menabrak Base
   getBaseDamage() {
-    if (this.type === 'tank') return 1500;
-    if (this.type === 'fast') return 350;
-    if (this.radius > 28)     return 600;
-    return 250;
+    if (this.type === 'tank') return 500;
+    if (this.type === 'fast') return 150;
+    if (this.radius > 28)     return 250;
+    return 80;
   }
 
   get offScreen() {
@@ -987,26 +987,26 @@ class Kroco {
   constructor(difficulty = 1) {
     this.x = WIDTH + 40;
     this.y = randFloat(80, HEIGHT - 80);
-    this.speed = randFloat(2.0, 3.2);
-    this.hp = Math.max(2, Math.floor(2 + difficulty * 0.6));
+    this.speed = randFloat(1.6, 2.4);
+    this.hp = Math.max(1, Math.floor(1 + difficulty * 0.3));
     this.maxHp = this.hp;
     this.w = 34;
     this.h = 24;
     this.wobble = randFloat(0, Math.PI * 2);
-    this.shootTimer = randInt(40, 100);
+    this.shootTimer = randInt(80, 160);
   }
 
   update() {
     this.x -= this.speed;
-    this.wobble += 0.05;
-    this.y += Math.sin(this.wobble) * 1.8;
+    this.wobble += 0.04;
+    this.y += Math.sin(this.wobble) * 1.4;
   }
 
   tryShoot(snd) {
     if (--this.shootTimer <= 0) {
-      this.shootTimer = randInt(80, 150);
+      this.shootTimer = randInt(140, 240);
       snd.enemyShoot();
-      return new EnemyBullet(this.x - 16, this.y, -7.5, 0, 1);
+      return new EnemyBullet(this.x - 16, this.y, -4.5, 0, 1);
     }
     return null;
   }
@@ -1044,7 +1044,7 @@ class Kroco {
   }
 
   hit(dmg) { this.hp -= dmg; return this.hp <= 0; }
-  getBaseDamage() { return 400; }
+  getBaseDamage() { return 120; }
   get offScreen() { return this.x < -40; }
 }
 
@@ -1052,24 +1052,24 @@ class Kroco {
 //  BOSS (CYBER DREADNOUGHT MOTHERSHIP)
 // ═══════════════════════════════════════════════════════════
 class Boss {
-  constructor(level = 3) {
+  constructor(level = 4) {
     this.x = WIDTH + 120;
     this.targetX = WIDTH - 130;
     this.y = HEIGHT / 2;
     this.w = 90;
     this.h = 140;
-    this.hp = 60 + level * 25;
+    this.hp = 30 + level * 8; // HP Boss lebih rasional dan tidak tebal berlebihan
     this.maxHp = this.hp;
-    this.vy = 2.0;
-    this.shootTimer = 50;
-    this.minionTimer = 220;
+    this.vy = 1.6;
+    this.shootTimer = 70;
+    this.minionTimer = 320;
     this.pulse = 0;
   }
 
   update() {
     // Masuk ke posisi target di sisi kanan
     if (this.x > this.targetX) {
-      this.x -= 1.8;
+      this.x -= 1.6;
     } else {
       // Bergerak naik turun perlahan
       this.y += this.vy;
@@ -1083,13 +1083,13 @@ class Boss {
   tryShoot(snd) {
     const bullets = [];
     if (--this.shootTimer <= 0) {
-      this.shootTimer = 75;
+      this.shootTimer = 110;
       snd.enemyShoot();
-      // Triple spread laser
+      // Triple spread laser (kecepatan bersahabat)
       bullets.push(
-        new EnemyBullet(this.x - 35, this.y - 30, -7, -1.5, 1),
-        new EnemyBullet(this.x - 40, this.y,      -8,  0,   1),
-        new EnemyBullet(this.x - 35, this.y + 30, -7,  1.5, 1)
+        new EnemyBullet(this.x - 35, this.y - 30, -4.2, -1.0, 1),
+        new EnemyBullet(this.x - 40, this.y,      -4.8,  0,   1),
+        new EnemyBullet(this.x - 35, this.y + 30, -4.2,  1.0, 1)
       );
     }
     return bullets;
@@ -1097,8 +1097,8 @@ class Boss {
 
   trySpawnMinion() {
     if (--this.minionTimer <= 0) {
-      this.minionTimer = 260;
-      const k = new Kroco(2);
+      this.minionTimer = 340;
+      const k = new Kroco(1.5);
       k.x = this.x - 20;
       k.y = this.y;
       return k;
@@ -1167,7 +1167,7 @@ class Boss {
 //  GAME ENGINE
 // ═══════════════════════════════════════════════════════════
 class Game {
-  static UPGRADE_SPAWN_INTERVAL = 1400; // ~23 detik sekali
+  static UPGRADE_SPAWN_INTERVAL = 700; // ~11-12 detik sekali (lebih sering memberi skill orb!)
   static MAX_PARTICLES          = 400;
 
   constructor(canvas) {
@@ -1318,8 +1318,8 @@ class Game {
       try { localStorage.setItem('meteor_high_score', String(this.highScore)); } catch {}
     }
 
-    // Hitung Energi yang didapat: tergantung score dan level
-    const earnedEnergy = Math.max(10, Math.floor(this.score / 50) + this.level * 15);
+    // Hitung Energi yang didapat: tergantung score dan level (ditingkatkan agar cepat upgrade!)
+    const earnedEnergy = Math.max(25, Math.floor(this.score / 25) + this.level * 30 + 50);
     Storage.addEnergy(earnedEnergy);
     this.lastEarnedEnergy = earnedEnergy;
 
@@ -1557,17 +1557,17 @@ class Game {
     if (++this.spawnTimer >= this.spawnInterval) {
       this.spawnTimer = 0;
       this.meteors.push(new Meteor(this.difficulty));
-      if (this.difficulty > 2.2 && Math.random() < 0.35)
+      if (this.difficulty > 2.8 && Math.random() < 0.25)
         this.meteors.push(new Meteor(this.difficulty));
     }
 
-    // Spawn Kroco Alien Drones (Mulai level 2+)
-    if (this.level >= 2 && Math.random() < 0.009 + this.difficulty * 0.003 && this.krocos.length < 4) {
+    // Spawn Kroco Alien Drones (Mulai level 3+, jumlah dibatasi agar tidak overwhelming)
+    if (this.level >= 3 && Math.random() < 0.005 + this.difficulty * 0.002 && this.krocos.length < 2) {
       this.krocos.push(new Kroco(this.difficulty));
     }
 
-    // Spawn Boss (Dreadnought) jarang muncul: setiap kelipatan level 3 dan belum ada boss aktif
-    if (this.level >= 3 && !this.boss && (this.level % 3 === 0) && this.diffTimer === 1) {
+    // Spawn Boss (Dreadnought) jarang muncul: setiap kelipatan level 4 dan belum ada boss aktif
+    if (this.level >= 4 && !this.boss && (this.level % 4 === 0) && this.diffTimer === 1) {
       this.boss = new Boss(this.level);
       this.bossAlert = 180;
       this.snd.bossWarning();
@@ -1602,11 +1602,11 @@ class Game {
     for (const orb of this.upgradeOrbs) orb.update();
     this.upgradeOrbs = this.upgradeOrbs.filter(o => !o.offScreen);
 
-    // Difficulty ramp setiap 10 detik
-    if (++this.diffTimer >= 600) {
+    // Difficulty ramp setiap 15 detik (900 ticks) - kenaikan difficulty lebih santai
+    if (++this.diffTimer >= 900) {
       this.diffTimer     = 0;
-      this.difficulty    = Math.min(this.difficulty + 0.22, 6);
-      this.spawnInterval = Math.max(24, this.spawnInterval - 6);
+      this.difficulty    = Math.min(this.difficulty + 0.12, 4.5);
+      this.spawnInterval = Math.max(42, this.spawnInterval - 4);
       this.level++;
       this.floatingTexts.push(new FloatingText(WIDTH / 2, HEIGHT / 3, `LEVEL ${this.level}!`, '#00dcff', 24));
       this._checkAchievements();
@@ -2246,8 +2246,11 @@ const ModalUI = {
 };
 
 // ═══════════════════════════════════════════════════════════
-//  LEADERBOARD UI (SUPABASE INTEGRATION)
+//  LEADERBOARD UI (SUPABASE + FAILSAFE INTEGRATION)
 // ═══════════════════════════════════════════════════════════
+const SUPABASE_REST_URL = 'https://famcdzykmsvallzogddb.supabase.co/rest/v1';
+const SUPABASE_ANON_KEY = 'sb_publishable_6iTtEjm1Ne2_9ttkl1p--w_HDDj_I0c';
+
 const LeaderboardUI = {
   tbody:        document.getElementById('leaderboard-body'),
   statusText:   document.getElementById('status-text'),
@@ -2267,53 +2270,99 @@ const LeaderboardUI = {
   },
 
   async checkStatus() {
+    // Coba endpoint lokal / vercel
     try {
       const res = await fetch('/api/status');
-      const data = await res.json();
-      if (data.configured) {
+      if (res.ok) {
         this.statusDot.className = 'status-dot';
         this.statusText.textContent = '🟢 Terhubung ke Supabase Cloud';
-      } else {
-        this.statusDot.className = 'status-dot yellow';
-        this.statusText.textContent = '🟡 Mode Lokal (.env Supabase belum diisi)';
+        return;
       }
-    } catch {
-      this.statusDot.className = 'status-dot yellow';
-      this.statusText.textContent = '🟡 Offline / Server Lokal';
-    }
+    } catch {}
+
+    // Failsafe: Cek langsung ke REST API Supabase
+    try {
+      const res = await fetch(`${SUPABASE_REST_URL}/leaderboard?select=id&limit=1`, {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      if (res.ok) {
+        this.statusDot.className = 'status-dot';
+        this.statusText.textContent = '🟢 Terhubung ke Supabase Cloud';
+        return;
+      }
+    } catch {}
+
+    this.statusDot.className = 'status-dot yellow';
+    this.statusText.textContent = '🟡 Mode Offline / Tersimpan Lokal';
   },
 
   async fetchLeaderboard() {
     this.tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Memuat data ranking...</td></tr>';
+    let scores = [];
+
+    // 1. Coba lewat backend API (/api/leaderboard)
     try {
       const res = await fetch('/api/leaderboard');
-      const data = await res.json();
-
-      const scores = Array.isArray(data) ? data : (data.scores || []);
-      if (scores.length === 0) {
-        this.tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada skor yang tercatat. Jadilah yang pertama!</td></tr>';
-        return;
+      if (res.ok) {
+        const data = await res.json();
+        scores = Array.isArray(data) ? data : (data.scores || []);
       }
-
-      this.tbody.innerHTML = scores.map((item, idx) => {
-        let rankBadge = `${idx + 1}`;
-        let rankClass = '';
-        if (idx === 0) { rankBadge = '🥇 1'; rankClass = 'rank-1'; }
-        else if (idx === 1) { rankBadge = '🥈 2'; rankClass = 'rank-2'; }
-        else if (idx === 2) { rankBadge = '🥉 3'; rankClass = 'rank-3'; }
-
-        return `
-          <tr>
-            <td class="${rankClass}">${rankBadge}</td>
-            <td style="font-weight: bold;">${escapeHtml(item.player_name || 'PILOT')}</td>
-            <td style="text-align: right;" class="score-cell">${(item.score || 0).toLocaleString()}</td>
-            <td style="text-align: right; color: #a0aec0;">Lv ${item.level || 1}</td>
-          </tr>
-        `;
-      }).join('');
-    } catch (err) {
-      this.tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: #ff4d4d;">Gagal memuat ranking: ${err.message}</td></tr>`;
+    } catch (e) {
+      console.warn('Backend /api/leaderboard offline, mencoba Supabase REST langsung...', e);
     }
+
+    // 2. Failsafe: Jika backend kosong atau error, ambil langsung dari Cloud Supabase via REST API
+    if (scores.length === 0) {
+      try {
+        const res = await fetch(`${SUPABASE_REST_URL}/leaderboard?select=id,player_name,score,level,created_at&order=score.desc&limit=10`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Accept': 'application/json'
+          }
+        });
+        if (res.ok) {
+          const cloudData = await res.json();
+          if (Array.isArray(cloudData) && cloudData.length > 0) {
+            scores = cloudData;
+          }
+        }
+      } catch (e) {
+        console.warn('Direct Supabase fetch fallback error:', e);
+      }
+    }
+
+    // 3. Failsafe: Jika internet mati total, ambil dari cache lokal
+    if (scores.length === 0) {
+      try {
+        scores = JSON.parse(localStorage.getItem('cached_scores') || '[]');
+      } catch {}
+    }
+
+    if (scores.length === 0) {
+      this.tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada skor yang tercatat. Jadilah yang pertama!</td></tr>';
+      return;
+    }
+
+    // Simpan ke cache lokal agar tidak pernah hilang
+    try { localStorage.setItem('cached_scores', JSON.stringify(scores)); } catch {}
+
+    this.tbody.innerHTML = scores.map((item, idx) => {
+      let rankBadge = `${idx + 1}`;
+      let rankClass = '';
+      if (idx === 0) { rankBadge = '🥇 1'; rankClass = 'rank-1'; }
+      else if (idx === 1) { rankBadge = '🥈 2'; rankClass = 'rank-2'; }
+      else if (idx === 2) { rankBadge = '🥉 3'; rankClass = 'rank-3'; }
+
+      return `
+        <tr>
+          <td class="${rankClass}">${rankBadge}</td>
+          <td style="font-weight: bold;">${escapeHtml(item.player_name || 'PILOT')}</td>
+          <td style="text-align: right;" class="score-cell">${(item.score || 0).toLocaleString()}</td>
+          <td style="text-align: right; color: #a0aec0;">Lv ${item.level || 1}</td>
+        </tr>
+      `;
+    }).join('');
   },
 
   promptSubmit(score, level, energy) {
@@ -2344,8 +2393,11 @@ const LeaderboardUI = {
     submitBtn.textContent = 'Menyimpan...';
     submitBtn.disabled = true;
 
+    let success = false;
+
+    // 1. Coba lewat backend /api/leaderboard
     try {
-      await fetch('/api/leaderboard', {
+      const res = await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2354,14 +2406,53 @@ const LeaderboardUI = {
           level: this.currentPendingLevel
         })
       });
-      ModalUI.closeSubmit();
-      ModalUI.openLeaderboard();
-    } catch (err) {
-      alert(`Gagal mengirim skor: ${err.message}`);
-    } finally {
-      submitBtn.textContent = originalText;
-      submitBtn.disabled = false;
+      if (res.ok) success = true;
+    } catch (e) {
+      console.warn('Backend submit failed, trying direct Supabase:', e);
     }
+
+    // 2. Failsafe: Kirim langsung ke Supabase Cloud REST API
+    if (!success) {
+      try {
+        const res = await fetch(`${SUPABASE_REST_URL}/leaderboard`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({
+            player_name: pilotName,
+            score: this.currentPendingScore,
+            level: this.currentPendingLevel
+          })
+        });
+        if (res.ok) success = true;
+      } catch (e) {
+        console.warn('Direct Supabase submit failed:', e);
+      }
+    }
+
+    // 3. Simpan juga selalu di cache lokal agar offline tetap tercatat
+    try {
+      const local = JSON.parse(localStorage.getItem('cached_scores') || '[]');
+      local.push({
+        id: Date.now(),
+        player_name: pilotName,
+        score: this.currentPendingScore,
+        level: this.currentPendingLevel,
+        created_at: new Date().toISOString()
+      });
+      local.sort((a, b) => b.score - a.score);
+      localStorage.setItem('cached_scores', JSON.stringify(local.slice(0, 10)));
+    } catch {}
+
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+
+    ModalUI.closeSubmit();
+    ModalUI.openLeaderboard();
   }
 };
 

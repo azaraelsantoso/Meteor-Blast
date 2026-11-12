@@ -1,6 +1,9 @@
 // Vercel Serverless Function: /api/leaderboard
-const SUPABASE_URL = (process.env.SUPABASE_URL || '').trim().replace(/\/$/, '');
-const SUPABASE_KEY = (process.env.SUPABASE_KEY || '').trim();
+const DEFAULT_SUPABASE_URL = 'https://famcdzykmsvallzogddb.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_6iTtEjm1Ne2_9ttkl1p--w_HDDj_I0c';
+
+const SUPABASE_URL = (process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL).trim().replace(/\/$/, '');
+const SUPABASE_KEY = (process.env.SUPABASE_KEY || DEFAULT_SUPABASE_KEY).trim();
 
 async function supabaseFetch(endpoint, options = {}) {
   const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
@@ -22,16 +25,10 @@ async function supabaseFetch(endpoint, options = {}) {
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, apikey, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
-  }
-
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    return res.status(500).json({
-      error: 'Supabase credentials not configured in Vercel Environment Variables.'
-    });
   }
 
   try {
@@ -46,17 +43,16 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      const { player_name, score, level } = body || {};
-
-      if (!player_name || typeof score !== 'number') {
-        return res.status(400).json({ error: 'player_name and numeric score are required.' });
-      }
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const rawName = String(body.player_name || 'PILOT').trim();
+      const playerName = rawName.slice(0, 16) || 'PILOT';
+      const score = Math.max(0, parseInt(body.score || 0, 10));
+      const level = Math.max(1, parseInt(body.level || 1, 10));
 
       const insertData = {
-        player_name: String(player_name).trim().slice(0, 16),
-        score: Math.max(0, Math.floor(score)),
-        level: Math.max(1, Math.floor(level || 1)),
+        player_name: playerName,
+        score,
+        level,
       };
 
       const result = await supabaseFetch('leaderboard', {
