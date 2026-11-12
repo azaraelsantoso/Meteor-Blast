@@ -24,6 +24,80 @@ const UPGRADE_DEFS = [
 const METEOR_PALETTES = ['#966432', '#6e5546', '#87735a', '#a58250'];
 
 // ═══════════════════════════════════════════════════════════
+//  DIFFICULTY MODES (EASY, MEDIUM, HARD, EXTREME)
+// ═══════════════════════════════════════════════════════════
+const DIFFICULTY_MODES = {
+  easy: {
+    id: 'easy',
+    name: 'EASY',
+    icon: '🟢',
+    label: 'Santai / Pemula',
+    baseHpBonus: 1.35, // +35% Base HP (20.000+ HP)
+    lives: 5,
+    shieldStart: true,
+    speedMult: 0.75,
+    damageBaseMult: 0.6,
+    orbInterval: 520, // ~8.5 detik
+    krocoLevel: 4,
+    bossInterval: 5,
+    scoreMult: 1.0,
+    color: '#32c850',
+    desc: 'HP Base 20k • 5 Nyawa • Meteor pelan • Banyak Skill Orb'
+  },
+  medium: {
+    id: 'medium',
+    name: 'MEDIUM',
+    icon: '🟡',
+    label: 'Normal / Seimbang',
+    baseHpBonus: 1.0, // 15.000 HP
+    lives: 4,
+    shieldStart: true,
+    speedMult: 1.0,
+    damageBaseMult: 1.0,
+    orbInterval: 700, // ~11 detik
+    krocoLevel: 3,
+    bossInterval: 4,
+    scoreMult: 1.25,
+    color: '#ffdc32',
+    desc: 'HP Base 15k • 4 Nyawa • Kecepatan standar • Skor +25%'
+  },
+  hard: {
+    id: 'hard',
+    name: 'HARD',
+    icon: '🔴',
+    label: 'Tantangan Pro',
+    baseHpBonus: 0.7, // 10.500 HP
+    lives: 3,
+    shieldStart: false,
+    speedMult: 1.3,
+    damageBaseMult: 1.4,
+    orbInterval: 900,
+    krocoLevel: 2,
+    bossInterval: 3,
+    scoreMult: 1.6,
+    color: '#ff4d4d',
+    desc: 'HP Base 10k • 3 Nyawa • Meteor cepat & agresif • Skor +60%'
+  },
+  extreme: {
+    id: 'extreme',
+    name: 'EXTREME',
+    icon: '💀',
+    label: 'Inferno / Hardcore',
+    baseHpBonus: 0.45, // 6.750 HP
+    lives: 2,
+    shieldStart: false,
+    speedMult: 1.65,
+    damageBaseMult: 2.0,
+    orbInterval: 1100,
+    krocoLevel: 2,
+    bossInterval: 2,
+    scoreMult: 2.5,
+    color: '#c850ff',
+    desc: 'HP Base 6.5k • 2 Nyawa • Super cepat & mematikan • Skor & Energi ×2.5!'
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
 //  PERMANENT HANGAR UPGRADE DEFINITIONS (Energy Currency)
 // ═══════════════════════════════════════════════════════════
 const HANGAR_UPGRADES = {
@@ -874,6 +948,10 @@ class Meteor {
       this.vy = 0;
     }
 
+    const speedMult = options.speedMult || 1.0;
+    this.speed = this.speed * speedMult;
+    this.damageBaseMult = options.damageBaseMult || 1.0;
+
     this.angle    = randFloat(0, Math.PI * 2);
     this.rotSpeed = randFloat(-0.03, 0.03);
     this.darkerStr = darkenHex(this.colorStr, 50);
@@ -967,12 +1045,13 @@ class Meteor {
 
   hit(dmg) { this.hp -= dmg; return this.hp <= 0; }
 
-  // Base Damage jika lolos ke kiri menabrak Base
+  // Base Damage jika lolos ke kiri menabrak Base (disesuaikan dengan mode kesulitan)
   getBaseDamage() {
-    if (this.type === 'tank') return 500;
-    if (this.type === 'fast') return 150;
-    if (this.radius > 28)     return 250;
-    return 80;
+    let base = 80;
+    if (this.type === 'tank') base = 500;
+    else if (this.type === 'fast') base = 150;
+    else if (this.radius > 28)     base = 250;
+    return Math.round(base * (this.damageBaseMult || 1.0));
   }
 
   get offScreen() {
@@ -1197,18 +1276,26 @@ class Game {
   }
 
   _reset() {
+    const modeKey = localStorage.getItem('preferred_difficulty') || 'medium';
+    this.mode = DIFFICULTY_MODES[modeKey] || DIFFICULTY_MODES.medium;
+
     this.ship = new Ship(false);
+    this.ship.lives = this.mode.lives;
+    this.ship.shield = this.mode.shieldStart;
+
     if (this.isMultiplayer) {
       this.peerShip = new Ship(true);
+      this.peerShip.lives = this.mode.lives;
+      this.peerShip.shield = this.mode.shieldStart;
       this.peerShip.y = HEIGHT / 2 + 60;
     } else {
       this.peerShip = null;
     }
 
-    // Base HP diinisialisasi dari upgrade Hangar!
+    // Base HP diinisialisasi dari upgrade Hangar & disesuaikan Mode Kesulitan
     const upgBaseHP = HANGAR_UPGRADES.baseHP.levels[Storage.getUpgradeLevel('baseHP')].val;
-    this.baseMaxHp  = upgBaseHP;
-    this.baseHp     = upgBaseHP;
+    this.baseMaxHp  = Math.round(upgBaseHP * this.mode.baseHpBonus);
+    this.baseHp     = this.baseMaxHp;
 
     this.bullets       = [];
     this.enemyBullets  = [];
@@ -1237,6 +1324,16 @@ class Game {
     Storage.updateEnergyUI();
     Storage.incStat('games_played', 1);
     this._checkAchievements();
+  }
+
+  setDifficultyMode(modeId) {
+    if (DIFFICULTY_MODES[modeId]) {
+      this.mode = DIFFICULTY_MODES[modeId];
+      localStorage.setItem('preferred_difficulty', modeId);
+      if (this.state === 'title' || this.state === 'gameover') {
+        this._reset();
+      }
+    }
   }
 
   _checkAchievements() {
@@ -1318,8 +1415,9 @@ class Game {
       try { localStorage.setItem('meteor_high_score', String(this.highScore)); } catch {}
     }
 
-    // Hitung Energi yang didapat: tergantung score dan level (ditingkatkan agar cepat upgrade!)
-    const earnedEnergy = Math.max(25, Math.floor(this.score / 25) + this.level * 30 + 50);
+    // Hitung Energi yang didapat: tergantung score, level, & pengali mode kesulitan
+    const scoreMult = this.mode ? this.mode.scoreMult : 1.25;
+    const earnedEnergy = Math.max(25, Math.floor((this.score / 25 + this.level * 30 + 40) * scoreMult));
     Storage.addEnergy(earnedEnergy);
     this.lastEarnedEnergy = earnedEnergy;
 
@@ -1553,21 +1651,27 @@ class Game {
     for (const eb of this.enemyBullets) eb.update();
     this.enemyBullets = this.enemyBullets.filter(eb => !eb.offScreen);
 
-    // Spawn Meteor dari Kanan
+    // Spawn Meteor dari Kanan (disesuaikan dengan mode kesulitan)
+    const mOpts = {
+      speedMult: this.mode ? this.mode.speedMult : 1.0,
+      damageBaseMult: this.mode ? this.mode.damageBaseMult : 1.0
+    };
     if (++this.spawnTimer >= this.spawnInterval) {
       this.spawnTimer = 0;
-      this.meteors.push(new Meteor(this.difficulty));
+      this.meteors.push(new Meteor(this.difficulty, mOpts));
       if (this.difficulty > 2.8 && Math.random() < 0.25)
-        this.meteors.push(new Meteor(this.difficulty));
+        this.meteors.push(new Meteor(this.difficulty, mOpts));
     }
 
-    // Spawn Kroco Alien Drones (Mulai level 3+, jumlah dibatasi agar tidak overwhelming)
-    if (this.level >= 3 && Math.random() < 0.005 + this.difficulty * 0.002 && this.krocos.length < 2) {
+    // Spawn Kroco Alien Drones (Sesuai mode kesulitan)
+    const krocoMinLvl = this.mode ? this.mode.krocoLevel : 3;
+    if (this.level >= krocoMinLvl && Math.random() < 0.005 + this.difficulty * 0.002 && this.krocos.length < 2) {
       this.krocos.push(new Kroco(this.difficulty));
     }
 
-    // Spawn Boss (Dreadnought) jarang muncul: setiap kelipatan level 4 dan belum ada boss aktif
-    if (this.level >= 4 && !this.boss && (this.level % 4 === 0) && this.diffTimer === 1) {
+    // Spawn Boss (Dreadnought) sesuai interval mode kesulitan
+    const bossInterval = this.mode ? this.mode.bossInterval : 4;
+    if (this.level >= bossInterval && !this.boss && (this.level % bossInterval === 0) && this.diffTimer === 1) {
       this.boss = new Boss(this.level);
       this.bossAlert = 180;
       this.snd.bossWarning();
@@ -1592,7 +1696,8 @@ class Game {
     }
 
     // Spawn Orb Upgrade Bulat
-    if (this.upgradeOrbs.length === 0 && ++this.orbSpawnTimer >= Game.UPGRADE_SPAWN_INTERVAL) {
+    const orbSpawnInt = this.mode ? this.mode.orbInterval : 700;
+    if (this.upgradeOrbs.length === 0 && ++this.orbSpawnTimer >= orbSpawnInt) {
       this.orbSpawnTimer = 0;
       const pick = choice(UPGRADE_DEFS);
       this.upgradeOrbs.push(new UpgradeOrb(pick));
@@ -1632,6 +1737,26 @@ class Game {
 
     if (code === 'KeyL') {
       ModalUI.toggleLeaderboard();
+      return;
+    }
+
+    if (code === 'KeyK') {
+      ModalUI.toggleGuide();
+      return;
+    }
+
+    if (code === 'KeyH') {
+      ModalUI.openHangar();
+      return;
+    }
+
+    if (code === 'KeyT') {
+      ModalUI.openAchieve();
+      return;
+    }
+
+    if (code === 'KeyM') {
+      ModalUI.openMP();
       return;
     }
 
@@ -1769,6 +1894,13 @@ class Game {
     ctx.textAlign = 'right';
     ctx.fillText(`LVL ${this.level}  |  BEST ${this.highScore.toLocaleString()}`, WIDTH - 340, 24);
 
+    if (this.mode) {
+      ctx.fillStyle = this.mode.color;
+      ctx.font = 'bold 12px Consolas, monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${this.mode.icon} ${this.mode.name} [${this.mode.scoreMult}×]`, WIDTH - 340, 42);
+    }
+
     // Active in-game skill tags
     const tags = [];
     if (this.ship.triple)        tags.push({ t: '3×SHOT',                      c: '#00dcff' });
@@ -1785,10 +1917,10 @@ class Game {
       ix += ctx.measureText(t).width + 12;
     }
 
-    ctx.fillStyle = '#555566';
+    ctx.fillStyle = '#64748b';
     ctx.font = '12px Consolas, monospace';
     ctx.textAlign = 'right';
-    ctx.fillText('[W/A/S/D] Maju-Mundur • [P] Pause • [L] Ranking', WIDTH - 14, HEIGHT - 14);
+    ctx.fillText('[W/A/S/D / Sentuh HP] Gerak • [K] Panduan • [P] Pause', WIDTH - 14, HEIGHT - 14);
     ctx.textAlign = 'left';
 
     // Boss Warning Banner
@@ -1817,30 +1949,35 @@ class Game {
     ctx.fillStyle   = `rgb(${tr},${tg},255)`;
     ctx.font        = 'bold 72px Impact, Arial, sans-serif';
     ctx.textAlign   = 'center';
-    ctx.fillText('METEOR BLASTER', WIDTH / 2, HEIGHT / 3);
+    ctx.fillText('METEOR BLASTER', WIDTH / 2, HEIGHT / 3 - 10);
     ctx.restore();
 
-    ctx.fillStyle = '#a8b2bc';
-    ctx.font      = '21px Consolas, monospace';
+    const activeMode = this.mode || DIFFICULTY_MODES.medium;
+    ctx.fillStyle = activeMode.color;
+    ctx.font      = 'bold 17px Consolas, monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Pertahankan Base Utama 🏰 (HP 10.000) dari Hujan Meteor & Alien!', WIDTH / 2, HEIGHT / 3 + 60);
+    ctx.fillText(`MODE AKTIF: ${activeMode.icon} ${activeMode.name} — ${activeMode.label} (Bonus Skor & ⚡ ×${activeMode.scoreMult})`, WIDTH / 2, HEIGHT / 3 + 36);
 
-    ctx.fillStyle = '#7a7a8e';
-    ctx.font      = '16px Consolas, monospace';
+    ctx.fillStyle = '#a8b2bc';
+    ctx.font      = '15px Consolas, monospace';
+    ctx.fillText(`Pertahankan Base 🏰 (HP ${this.baseMaxHp.toLocaleString()}) dari Gempuran Meteor & Alien!`, WIDTH / 2, HEIGHT / 3 + 62);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font      = '14px Consolas, monospace';
     const lines = [
-      'W / A / S / D  : Gerak Pesawat (Bisa Maju-Mundur & Naik-Turun!)',
-      'SPACE          : Tembak Laser (Tahan untuk Auto-Fire)',
-      'METEOR BESAR   : Terbelah 2 saat ditembak hancur',
-      'SKILL ORB      : Tabrak bola bulat di tengah untuk upgrade instan',
-      'HANGAR UPGRADE : Pasang Wingman Drone, Tambah Darah Base & Damage!',
+      'W / A / S / D  : Gerak 4 Arah (Bisa Maju-Mundur & Naik-Turun)',
+      'SPACE (Tahan)  : Tembak Laser Otomatis (Auto-Fire Cepat)',
+      'LAYAR SENTUH   : Sentuh / Geser layar HP untuk menggerakkan pesawat!',
+      'PILIH MODE     : Klik tombol Mode di atas (EASY, MEDIUM, HARD, EXTREME)',
+      'PANDUAN & TIPS : Tekan [K] atau klik tombol "📖 CARA MAIN" di atas',
     ];
     for (let i = 0; i < lines.length; i++)
-      ctx.fillText(lines[i], WIDTH / 2, HEIGHT / 2 + 10 + i * 26);
+      ctx.fillText(lines[i], WIDTH / 2, HEIGHT / 2 + 10 + i * 24);
 
     const blink = Math.floor(this.tick / 30) % 2 === 0 ? '#ffffff' : '#686878';
     ctx.fillStyle = blink;
-    ctx.font      = 'bold 24px Consolas, monospace';
-    ctx.fillText('TEKAN SPACE UNTUK MEMULAI MISI', WIDTH / 2, HEIGHT * 3 / 4 + 36);
+    ctx.font      = 'bold 22px Consolas, monospace';
+    ctx.fillText('TEKAN SPACE / SENTUH LAYAR UNTUK MULAI', WIDTH / 2, HEIGHT * 3 / 4 + 38);
     ctx.textAlign = 'left';
   }
 
@@ -1854,26 +1991,31 @@ class Game {
     ctx.fillStyle  = '#dc2828';
     ctx.font       = 'bold 68px Impact, Arial, sans-serif';
     ctx.textAlign  = 'center';
-    ctx.fillText(this.gameOverReason || 'GAME OVER', WIDTH / 2, HEIGHT / 3);
+    ctx.fillText(this.gameOverReason || 'GAME OVER', WIDTH / 2, HEIGHT / 3 - 10);
     ctx.restore();
+
+    const activeMode = this.mode || DIFFICULTY_MODES.medium;
+    ctx.fillStyle = activeMode.color;
+    ctx.font      = 'bold 18px Consolas, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Mode: ${activeMode.icon} ${activeMode.name} (${activeMode.label})`, WIDTH / 2, HEIGHT / 3 + 42);
 
     ctx.fillStyle = '#ffffff';
     ctx.font      = 'bold 24px Consolas, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`Skor Akhir : ${this.score.toLocaleString()}`,       WIDTH / 2, HEIGHT / 3 + 68);
+    ctx.fillText(`Skor Akhir : ${this.score.toLocaleString()}`,       WIDTH / 2, HEIGHT / 3 + 76);
     ctx.fillStyle = '#ffdc32';
-    ctx.fillText(`Rekor Terbaik: ${this.highScore.toLocaleString()}`, WIDTH / 2, HEIGHT / 3 + 100);
+    ctx.fillText(`Rekor Terbaik: ${this.highScore.toLocaleString()}`, WIDTH / 2, HEIGHT / 3 + 106);
 
     if (this.lastEarnedEnergy) {
       ctx.fillStyle = '#32c850';
       ctx.font = 'bold 20px Consolas, monospace';
-      ctx.fillText(`+${this.lastEarnedEnergy} ⚡ Energi Berhasil Dikumpulkan!`, WIDTH / 2, HEIGHT / 3 + 138);
+      ctx.fillText(`+${this.lastEarnedEnergy} ⚡ Energi Berhasil Dikumpulkan!`, WIDTH / 2, HEIGHT / 3 + 144);
     }
 
     const blink = Math.floor(this.tick / 30) % 2 === 0 ? '#ffffff' : '#686878';
     ctx.fillStyle = blink;
-    ctx.font      = 'bold 24px Consolas, monospace';
-    ctx.fillText('TEKAN SPACE UNTUK MAIN LAGI', WIDTH / 2, HEIGHT * 3 / 4 + 10);
+    ctx.font      = 'bold 22px Consolas, monospace';
+    ctx.fillText('TEKAN SPACE / SENTUH LAYAR UNTUK MAIN LAGI', WIDTH / 2, HEIGHT * 3 / 4 + 14);
     ctx.textAlign = 'left';
   }
 
@@ -1962,6 +2104,7 @@ class Game {
 //  MODAL & UI MANAGER
 // ═══════════════════════════════════════════════════════════
 const ModalUI = {
+  mGuide:       document.getElementById('modal-guide'),
   mHangar:      document.getElementById('modal-hangar'),
   mAchieve:     document.getElementById('modal-achieve'),
   mMP:          document.getElementById('modal-mp'),
@@ -1970,6 +2113,24 @@ const ModalUI = {
 
   init(game) {
     this.game = game;
+
+    // Panduan / Beginner Guide
+    document.getElementById('btn-open-guide').addEventListener('click', () => this.openGuide());
+    document.getElementById('btn-close-guide').addEventListener('click', () => this.closeGuide());
+    document.getElementById('btn-close-guide-2').addEventListener('click', () => this.closeGuide());
+
+    // Difficulty Mode Selector Tabs
+    const curMode = localStorage.getItem('preferred_difficulty') || 'medium';
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      if (tab.dataset.mode === curMode) tab.classList.add('active');
+      else tab.classList.remove('active');
+
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        this.game.setDifficultyMode(tab.dataset.mode);
+      });
+    });
 
     // Hangar
     document.getElementById('btn-open-hangar').addEventListener('click', () => this.openHangar());
@@ -2012,6 +2173,7 @@ const ModalUI = {
 
   isOpen() {
     return (
+      (this.mGuide && this.mGuide.classList.contains('active')) ||
       this.mHangar.classList.contains('active') ||
       this.mAchieve.classList.contains('active') ||
       this.mMP.classList.contains('active') ||
@@ -2021,11 +2183,28 @@ const ModalUI = {
   },
 
   closeAll() {
+    if (this.mGuide) this.mGuide.classList.remove('active');
     this.mHangar.classList.remove('active');
     this.mAchieve.classList.remove('active');
     this.mMP.classList.remove('active');
     this.mLeaderboard.classList.remove('active');
     this.mSubmit.classList.remove('active');
+  },
+
+  // ── Panduan / Beginner Guide ─────────────────────────────
+  openGuide() {
+    this.closeAll();
+    if (this.mGuide) this.mGuide.classList.add('active');
+  },
+  closeGuide() {
+    if (this.mGuide) this.mGuide.classList.remove('active');
+  },
+  toggleGuide() {
+    if (this.mGuide && this.mGuide.classList.contains('active')) {
+      this.closeGuide();
+    } else {
+      this.openGuide();
+    }
   },
 
   // ── Hangar ──────────────────────────────────────────────
@@ -2461,6 +2640,152 @@ function escapeHtml(str) {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  MOBILE TOUCH & VIRTUAL CONTROLS
+// ═══════════════════════════════════════════════════════════
+const TouchControls = {
+  layer: document.getElementById('mobile-controls'),
+  btnToggle: document.getElementById('btn-toggle-touch'),
+  game: null,
+
+  init(game) {
+    this.game = game;
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 900;
+    const savedTouch = localStorage.getItem('touch_controls_enabled');
+    const enabled = savedTouch !== null ? (savedTouch === 'true') : isTouchDevice;
+
+    this.setVisible(enabled);
+
+    if (this.btnToggle) {
+      this.btnToggle.addEventListener('click', () => {
+        const next = this.layer.classList.contains('hidden');
+        this.setVisible(next);
+        localStorage.setItem('touch_controls_enabled', String(next));
+      });
+    }
+
+    // D-Pad buttons: ArrowUp, ArrowDown, ArrowLeft, ArrowRight
+    document.querySelectorAll('.dpad-btn').forEach(btn => {
+      const key = btn.dataset.key;
+      const press = (e) => {
+        e.preventDefault();
+        btn.classList.add('pressed');
+        this.game.keys[key] = true;
+      };
+      const release = (e) => {
+        e.preventDefault();
+        btn.classList.remove('pressed');
+        delete this.game.keys[key];
+      };
+
+      btn.addEventListener('touchstart', press, { passive: false });
+      btn.addEventListener('touchend', release, { passive: false });
+      btn.addEventListener('touchcancel', release, { passive: false });
+      btn.addEventListener('mousedown', press);
+      btn.addEventListener('mouseup', release);
+      btn.addEventListener('mouseleave', release);
+    });
+
+    // Fire button (hold to auto-fire continuously)
+    const fireBtn = document.getElementById('mobile-btn-fire');
+    if (fireBtn) {
+      const pressFire = (e) => {
+        e.preventDefault();
+        fireBtn.classList.add('pressed');
+        this.game.keys['Space'] = true;
+        if (this.game.state === 'title' || this.game.state === 'gameover') {
+          this.game._reset();
+          this.game.state = 'playing';
+        }
+      };
+      const releaseFire = (e) => {
+        e.preventDefault();
+        fireBtn.classList.remove('pressed');
+        delete this.game.keys['Space'];
+      };
+      fireBtn.addEventListener('touchstart', pressFire, { passive: false });
+      fireBtn.addEventListener('touchend', releaseFire, { passive: false });
+      fireBtn.addEventListener('touchcancel', releaseFire, { passive: false });
+      fireBtn.addEventListener('mousedown', pressFire);
+      fireBtn.addEventListener('mouseup', releaseFire);
+      fireBtn.addEventListener('mouseleave', releaseFire);
+    }
+
+    // Pause button
+    const pauseBtn = document.getElementById('mobile-btn-pause');
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (this.game.state === 'playing') {
+          this.game.isPaused = !this.game.isPaused;
+        } else if (this.game.state === 'title' || this.game.state === 'gameover') {
+          this.game._reset();
+          this.game.state = 'playing';
+        }
+      });
+    }
+
+    // Direct touch / Drag-to-Move on canvas for smartphones!
+    let activeTouchId = null;
+    this.game.canvas.addEventListener('touchstart', (e) => {
+      if (ModalUI.isOpen()) return;
+      if (this.game.state === 'title' || this.game.state === 'gameover') {
+        this.game._reset();
+        this.game.state = 'playing';
+        return;
+      }
+      const t = e.changedTouches[0];
+      activeTouchId = t.identifier;
+      this._handleTouchMove(t);
+    }, { passive: false });
+
+    this.game.canvas.addEventListener('touchmove', (e) => {
+      if (ModalUI.isOpen() || this.game.state !== 'playing') return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === activeTouchId) {
+          e.preventDefault();
+          this._handleTouchMove(e.changedTouches[i]);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    this.game.canvas.addEventListener('touchend', () => {
+      activeTouchId = null;
+    }, { passive: false });
+  },
+
+  _handleTouchMove(touch) {
+    const rect = this.game.canvas.getBoundingClientRect();
+    const scaleX = WIDTH / rect.width;
+    const scaleY = HEIGHT / rect.height;
+    const cx = (touch.clientX - rect.left) * scaleX;
+    const cy = (touch.clientY - rect.top) * scaleY;
+
+    if (this.game.ship) {
+      this.game.ship.y = clamp(cy, Ship.BODY_H / 2 + 5, HEIGHT - Ship.BODY_H / 2 - 5);
+      this.game.ship.x = clamp(cx - 30, 75, 480);
+    }
+  },
+
+  setVisible(visible) {
+    if (!this.layer) return;
+    if (visible) {
+      this.layer.classList.remove('hidden');
+      if (this.btnToggle) {
+        this.btnToggle.style.color = '#4ade80';
+        this.btnToggle.textContent = '📱 KONTROL HP: ON';
+      }
+    } else {
+      this.layer.classList.add('hidden');
+      if (this.btnToggle) {
+        this.btnToggle.style.color = '#94a3b8';
+        this.btnToggle.textContent = '📱 KONTROL HP: OFF';
+      }
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
 //  BOOTSTRAP
 // ═══════════════════════════════════════════════════════════
 (function init() {
@@ -2480,6 +2805,7 @@ function escapeHtml(str) {
 
   const game = new Game(canvas);
   ModalUI.init(game);
+  TouchControls.init(game);
 
   window.addEventListener('keydown', e => {
     if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code) && !(document.activeElement && document.activeElement.tagName === 'INPUT')) {

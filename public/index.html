@@ -411,6 +411,248 @@
       justify-content: flex-end;
       margin-top: 6px;
     }
+
+    /* Difficulty Mode Tabs */
+    .mode-btn-group {
+      display: inline-flex;
+      background: rgba(8, 14, 26, 0.95);
+      border: 1px solid rgba(0, 220, 255, 0.3);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 3px;
+    }
+    .mode-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      font-family: 'Consolas', monospace;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .mode-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .mode-tab.active[data-mode="easy"] {
+      background: rgba(50, 200, 80, 0.25);
+      color: #32c850;
+      border-color: #32c850;
+      box-shadow: 0 0 10px rgba(50, 200, 80, 0.4);
+    }
+    .mode-tab.active[data-mode="medium"] {
+      background: rgba(255, 220, 50, 0.25);
+      color: #ffdc32;
+      border-color: #ffdc32;
+      box-shadow: 0 0 10px rgba(255, 220, 50, 0.4);
+    }
+    .mode-tab.active[data-mode="hard"] {
+      background: rgba(255, 77, 77, 0.25);
+      color: #ff4d4d;
+      border-color: #ff4d4d;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+    }
+    .mode-tab.active[data-mode="extreme"] {
+      background: rgba(200, 80, 255, 0.25);
+      color: #c850ff;
+      border-color: #c850ff;
+      box-shadow: 0 0 10px rgba(200, 80, 255, 0.4);
+    }
+
+    /* Beginner Guide Layout */
+    .guide-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .guide-item {
+      display: flex;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(0, 220, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      align-items: flex-start;
+    }
+    .guide-icon {
+      font-size: 24px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .guide-title {
+      font-weight: bold;
+      color: #00dcff;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+    .guide-desc {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Mobile Virtual Controls Layer */
+    .mobile-controls-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 20px 24px;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: opacity 0.2s ease;
+    }
+    .mobile-controls-layer.hidden {
+      display: none !important;
+    }
+
+    .dpad-container {
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: rgba(10, 16, 28, 0.55);
+      border: 1px solid rgba(0, 220, 255, 0.25);
+      border-radius: 50%;
+      padding: 6px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+    .dpad-middle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .dpad-center {
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 220, 255, 0.08);
+      border-radius: 50%;
+    }
+    .dpad-btn {
+      width: 48px;
+      height: 48px;
+      background: rgba(18, 28, 48, 0.88);
+      border: 1.5px solid rgba(0, 220, 255, 0.4);
+      color: #00dcff;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      touch-action: none;
+      transition: all 0.1s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+    .dpad-btn:active, .dpad-btn.pressed {
+      background: rgba(0, 220, 255, 0.45);
+      border-color: #00dcff;
+      transform: scale(0.92);
+      box-shadow: 0 0 15px rgba(0, 220, 255, 0.6);
+    }
+
+    .mobile-action-container {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .mobile-action-btn {
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+      transition: all 0.1s ease;
+    }
+    .mobile-pause-btn {
+      width: 50px;
+      height: 50px;
+      background: rgba(18, 24, 38, 0.88);
+      border: 1.5px solid rgba(255, 220, 50, 0.5);
+      color: #ffdc32;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .mobile-fire-btn {
+      width: 78px;
+      height: 78px;
+      background: linear-gradient(135deg, rgba(255, 30, 80, 0.9), rgba(255, 120, 0, 0.9));
+      border: 2px solid #ff3264;
+      color: #fff;
+      font-size: 24px;
+      box-shadow: 0 0 25px rgba(255, 50, 100, 0.6);
+    }
+    .mobile-fire-btn:active, .mobile-fire-btn.pressed {
+      transform: scale(0.92);
+      box-shadow: 0 0 35px rgba(255, 50, 100, 0.9);
+      background: linear-gradient(135deg, #ff1e50, #ff9600);
+    }
+
+    @media (max-width: 900px) {
+      .top-bar {
+        flex-wrap: wrap;
+        top: 6px;
+        right: 6px;
+        left: 6px;
+        justify-content: center;
+        gap: 5px;
+      }
+      .btn {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+      .energy-badge {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+      .mode-tab {
+        font-size: 10px;
+        padding: 3px 6px;
+      }
+      .mobile-controls-layer {
+        padding: 12px 14px;
+      }
+      .dpad-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+      }
+      .dpad-center {
+        width: 36px;
+        height: 36px;
+      }
+      .mobile-fire-btn {
+        width: 68px;
+        height: 68px;
+        font-size: 20px;
+      }
+      .mobile-pause-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -420,11 +662,124 @@
 
     <!-- Top Action Buttons -->
     <div class="top-bar">
+      <!-- Mode Difficulty Selector -->
+      <div class="mode-btn-group" id="mode-selector" title="Pilih Tingkat Kesulitan">
+        <button class="mode-tab" data-mode="easy">🟢 EASY</button>
+        <button class="mode-tab active" data-mode="medium">🟡 MEDIUM</button>
+        <button class="mode-tab" data-mode="hard">🔴 HARD</button>
+        <button class="mode-tab" data-mode="extreme">💀 EXTREME</button>
+      </div>
+
       <div id="energy-counter" class="energy-badge">⚡ 0 ENERGI</div>
+      <button id="btn-open-guide" class="btn" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.5);">📖 CARA MAIN [K]</button>
+      <button id="btn-toggle-touch" class="btn" style="color: #4ade80; border-color: rgba(74, 222, 128, 0.5);">📱 KONTROL HP</button>
       <button id="btn-open-hangar" class="btn btn-hangar">🛠️ HANGAR & UPGRADE</button>
       <button id="btn-open-achieve" class="btn" style="color: #ffdc32; border-color: rgba(255,220,50,0.5);">🎖️ MISI</button>
       <button id="btn-open-mp" class="btn btn-mp">🌐 MULTIPLAYER</button>
       <button id="btn-open-leaderboard" class="btn">🏆 RANKING [L]</button>
+    </div>
+
+    <!-- Mobile Virtual On-Screen Controls -->
+    <div id="mobile-controls" class="mobile-controls-layer">
+      <!-- Left: D-Pad -->
+      <div class="dpad-container">
+        <button class="dpad-btn dpad-up" data-key="ArrowUp" aria-label="Naik">▲</button>
+        <div class="dpad-middle">
+          <button class="dpad-btn dpad-left" data-key="ArrowLeft" aria-label="Mundur">◀</button>
+          <div class="dpad-center"></div>
+          <button class="dpad-btn dpad-right" data-key="ArrowRight" aria-label="Maju">▶</button>
+        </div>
+        <button class="dpad-btn dpad-down" data-key="ArrowDown" aria-label="Turun">▼</button>
+      </div>
+
+      <!-- Right: Action Buttons -->
+      <div class="mobile-action-container">
+        <button id="mobile-btn-pause" class="mobile-action-btn mobile-pause-btn" aria-label="Pause">⏸️</button>
+        <button id="mobile-btn-fire" class="mobile-action-btn mobile-fire-btn" aria-label="Tembak">
+          <span>🔥</span>
+          <span style="font-size: 11px; font-weight: bold; margin-top: 1px;">FIRE</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Beginner Guide Modal -->
+    <div id="modal-guide" class="modal-overlay">
+      <div class="modal-card" style="max-width: 600px;">
+        <div class="modal-header">
+          <div class="modal-title">📖 PANDUAN PILOT PEMULA (CARA MAIN)</div>
+          <button id="btn-close-guide" class="modal-close">&times;</button>
+        </div>
+
+        <div style="font-size: 13px; color: #a0aec0; line-height: 1.5;">
+          Selamat datang di skuadron tempur antariksa! Pelajari kunci kontrol dan taktik bertahan:
+        </div>
+
+        <div class="guide-grid">
+          <div class="guide-item">
+            <div class="guide-icon">🕹️</div>
+            <div>
+              <div class="guide-title">KONTROL KEYBOARD (KOMPUTER / LAPTOP)</div>
+              <div class="guide-desc">
+                • <b>W / S</b> atau <b>↑ / ↓</b> : Manuver Naik & Turun<br/>
+                • <b>A / D</b> atau <b>← / →</b> : Manuver Maju & Mundur<br/>
+                • <b>SPACE</b> (Tahan) : Tembak Laser Otomatis (Auto-Fire)<br/>
+                • <b>P / ESC</b> : Pause • <b>L</b> : Buka Ranking Global • <b>K</b> : Buka Panduan ini
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <div class="guide-icon">📱</div>
+            <div>
+              <div class="guide-title">KONTROL HP / LAYAR SENTUH (SMARTPHONE)</div>
+              <div class="guide-desc">
+                • <b>Sentuh & Geser Layar</b> : Pesawat langsung meluncur mengikuti sentuhan jari Anda!<br/>
+                • <b>Tombol D-Pad Kiri</b> : Gerak presisi 4 arah di pojok kiri bawah<br/>
+                • <b>Tombol FIRE Kanan</b> : Tahan untuk menembak proyektil tanpa henti
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <div class="guide-icon">🏰</div>
+            <div>
+              <div class="guide-title">PERTAHANKAN BASE MARKAS (SISI KIRI)</div>
+              <div class="guide-desc">
+                Markas utama di sisi kiri dilindungi kubah energi. Jika ada meteor atau alien yang tembus ke batas kiri, darah Base akan berkurang. Lindungi Base agar tidak hancur!
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <div class="guide-icon">🔮</div>
+            <div>
+              <div class="guide-title">BOLA SKILL UPGRADE BULAT (TENGAH LAYAR)</div>
+              <div class="guide-desc">
+                Ambil bola bulat bercahaya yang muncul di tengah pertempuran:<br/>
+                🔵 <b>3× Shot</b> (3 peluru) • 🟠 <b>Damage Up</b> • 🟡 <b>Rapid Fire</b> • 🟣 <b>Shield</b> • 🟢 <b>Speed</b>
+              </div>
+            </div>
+          </div>
+
+          <div class="guide-item">
+            <div class="guide-icon">⚡</div>
+            <div>
+              <div class="guide-title">HANGAR UPGRADE & TINGKAT KESULITAN</div>
+              <div class="guide-desc">
+                • Dapatkan <b>⚡ Energi</b> setiap selesai bermain.<br/>
+                • Buka menu <b>Hangar</b> untuk pasang <b>Wingman Drone</b>, tambah darah Base, & damage.<br/>
+                • Pilih mode permainan di atas: <b>EASY</b> (Santai), <b>MEDIUM</b> (Standar), <b>HARD</b> (Tantangan), atau <b>EXTREME</b> (Bonus Skor & Energi ×2.5)!
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+          <button id="btn-close-guide-2" class="btn btn-primary" style="padding: 8px 22px;">
+            Siap Bertempur!
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Hangar & Upgrades Modal -->
