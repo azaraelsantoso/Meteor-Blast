@@ -609,6 +609,12 @@
       background: linear-gradient(135deg, #ff1e50, #ff9600);
     }
 
+    /* Hide top bar during gameplay */
+    .top-bar.hidden { display: none !important; }
+
+    /* Hide toggle button on desktop */
+    body:not(.is-mobile) #btn-toggle-touch { display: none !important; }
+
     @media (max-width: 900px) {
       .top-bar {
         flex-wrap: wrap;

@@ -1326,6 +1326,16 @@ class Game {
     this._checkAchievements();
   }
 
+  _hideTopBar() {
+    const tb = document.querySelector('.top-bar');
+    if (tb) tb.classList.add('hidden');
+  }
+
+  _showTopBar() {
+    const tb = document.querySelector('.top-bar');
+    if (tb) tb.classList.remove('hidden');
+  }
+
   setDifficultyMode(modeId) {
     if (DIFFICULTY_MODES[modeId]) {
       this.mode = DIFFICULTY_MODES[modeId];
@@ -1409,6 +1419,7 @@ class Game {
   _gameOver(reason = 'GAME OVER') {
     this.state = 'gameover';
     this.gameOverReason = reason;
+    this._showTopBar();
 
     if (this.score > this.highScore) {
       this.highScore = this.score;
@@ -1776,8 +1787,8 @@ class Game {
 
     if (code === 'Space') {
       if (ModalUI.isOpen()) return;
-      if (this.state === 'title')    { this._reset(); this.state = 'playing'; }
-      if (this.state === 'gameover') { this._reset(); this.state = 'playing'; }
+      if (this.state === 'title')    { this._reset(); this.state = 'playing'; this._hideTopBar(); }
+      if (this.state === 'gameover') { this._reset(); this.state = 'playing'; this._hideTopBar(); }
     }
   }
 
@@ -1786,8 +1797,8 @@ class Game {
   onMouseClick() {
     if (ModalUI.isOpen()) return;
     this.snd.unlock();
-    if (this.state === 'title')    { this._reset(); this.state = 'playing'; }
-    if (this.state === 'gameover') { this._reset(); this.state = 'playing'; }
+    if (this.state === 'title')    { this._reset(); this.state = 'playing'; this._hideTopBar(); }
+    if (this.state === 'gameover') { this._reset(); this.state = 'playing'; this._hideTopBar(); }
   }
 
   _drawBaseShield(ctx) {
@@ -2383,6 +2394,7 @@ const ModalUI = {
       this.closeAll();
       this.game._reset();
       this.game.state = 'playing';
+      this.game._hideTopBar();
       this.game.floatingTexts.push(new FloatingText(WIDTH / 2, HEIGHT / 2, '🌐 MULTIPLAYER CO-OP CONNECTED! GO!', '#32c850', 26));
     }
     if (msg.type === 'PLAYER_MOVE') {
@@ -2646,22 +2658,22 @@ const TouchControls = {
   layer: document.getElementById('mobile-controls'),
   btnToggle: document.getElementById('btn-toggle-touch'),
   game: null,
+  isMobile: false,
 
   init(game) {
     this.game = game;
-    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 900;
-    const savedTouch = localStorage.getItem('touch_controls_enabled');
-    const enabled = savedTouch !== null ? (savedTouch === 'true') : isTouchDevice;
+    // Auto-detect: mobile = touch device OR small screen
+    this.isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 900;
 
-    this.setVisible(enabled);
-
-    if (this.btnToggle) {
-      this.btnToggle.addEventListener('click', () => {
-        const next = this.layer.classList.contains('hidden');
-        this.setVisible(next);
-        localStorage.setItem('touch_controls_enabled', String(next));
-      });
+    // Tag body for CSS rules
+    if (this.isMobile) {
+      document.body.classList.add('is-mobile');
+    } else {
+      document.body.classList.remove('is-mobile');
     }
+
+    // Mobile: always show touch controls. Desktop: always hide.
+    this.setVisible(this.isMobile);
 
     // D-Pad buttons: ArrowUp, ArrowDown, ArrowLeft, ArrowRight
     document.querySelectorAll('.dpad-btn').forEach(btn => {
@@ -2695,6 +2707,7 @@ const TouchControls = {
         if (this.game.state === 'title' || this.game.state === 'gameover') {
           this.game._reset();
           this.game.state = 'playing';
+          this.game._hideTopBar();
         }
       };
       const releaseFire = (e) => {
@@ -2720,6 +2733,7 @@ const TouchControls = {
         } else if (this.game.state === 'title' || this.game.state === 'gameover') {
           this.game._reset();
           this.game.state = 'playing';
+          this.game._hideTopBar();
         }
       });
     }
@@ -2731,6 +2745,7 @@ const TouchControls = {
       if (this.game.state === 'title' || this.game.state === 'gameover') {
         this.game._reset();
         this.game.state = 'playing';
+        this.game._hideTopBar();
         return;
       }
       const t = e.changedTouches[0];
@@ -2771,16 +2786,8 @@ const TouchControls = {
     if (!this.layer) return;
     if (visible) {
       this.layer.classList.remove('hidden');
-      if (this.btnToggle) {
-        this.btnToggle.style.color = '#4ade80';
-        this.btnToggle.textContent = '📱 KONTROL HP: ON';
-      }
     } else {
       this.layer.classList.add('hidden');
-      if (this.btnToggle) {
-        this.btnToggle.style.color = '#94a3b8';
-        this.btnToggle.textContent = '📱 KONTROL HP: OFF';
-      }
     }
   }
 };
