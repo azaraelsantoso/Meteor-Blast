@@ -32,17 +32,20 @@ const DIFFICULTY_MODES = {
     name: 'EASY',
     icon: '🟢',
     label: 'Santai / Pemula',
-    baseHpBonus: 1.35, // +35% Base HP (20.000+ HP)
+    baseHpBonus: 1.5, // 22,500 - 30,000+ HP
     lives: 5,
     shieldStart: true,
-    speedMult: 0.75,
-    damageBaseMult: 0.6,
-    orbInterval: 520, // ~8.5 detik
+    speedMult: 0.65, // Jauh lebih pelan
+    hpMult: 0.8,
+    damageBaseMult: 0.5,
+    spawnInterval: 110,
+    spawnBurstMax: 1, // 1 meteor per spawn
+    orbInterval: 480, // ~8 detik
     krocoLevel: 4,
     bossInterval: 5,
     scoreMult: 1.0,
     color: '#32c850',
-    desc: 'HP Base 20k • 5 Nyawa • Meteor pelan • Banyak Skill Orb'
+    desc: 'HP Base 25k+ • 5 Nyawa • Meteor pelan • Banyak Skill Orb'
   },
   medium: {
     id: 'medium',
@@ -53,9 +56,12 @@ const DIFFICULTY_MODES = {
     lives: 4,
     shieldStart: true,
     speedMult: 1.0,
+    hpMult: 1.0,
     damageBaseMult: 1.0,
-    orbInterval: 700, // ~11 detik
-    krocoLevel: 3,
+    spawnInterval: 75,
+    spawnBurstMax: 2,
+    orbInterval: 650,
+    krocoLevel: 2,
     bossInterval: 4,
     scoreMult: 1.25,
     color: '#ffdc32',
@@ -69,31 +75,37 @@ const DIFFICULTY_MODES = {
     baseHpBonus: 0.7, // 10.500 HP
     lives: 3,
     shieldStart: false,
-    speedMult: 1.3,
-    damageBaseMult: 1.4,
-    orbInterval: 900,
-    krocoLevel: 2,
+    speedMult: 1.45, // Cepat & agresif!
+    hpMult: 1.4,     // Lebih tebal
+    damageBaseMult: 1.5,
+    spawnInterval: 45, // Kurang dari 1 detik!
+    spawnBurstMax: 3, // Hingga 3 meteor bersamaan
+    orbInterval: 850,
+    krocoLevel: 1, // Kroco aktif sejak Level 1!
     bossInterval: 3,
-    scoreMult: 1.6,
+    scoreMult: 1.8,
     color: '#ff4d4d',
-    desc: 'HP Base 10k • 3 Nyawa • Meteor cepat & agresif • Skor +60%'
+    desc: 'HP Base 10k • 3 Nyawa • Meteor cepat & bergelombang • Kroco Lv 1 • Skor +80%'
   },
   extreme: {
     id: 'extreme',
     name: 'EXTREME',
     icon: '💀',
-    label: 'Inferno / Hardcore',
+    label: 'Bullet Hell / Hardcore',
     baseHpBonus: 0.45, // 6.750 HP
     lives: 2,
     shieldStart: false,
-    speedMult: 1.65,
-    damageBaseMult: 2.0,
+    speedMult: 2.1,  // SUPER CEPAT & AGRESIF!
+    hpMult: 2.0,     // 2x lebih tebal!
+    damageBaseMult: 2.5,
+    spawnInterval: 28, // Hujan meteor nonstop!
+    spawnBurstMax: 4, // 2-4 meteor sekaligus!
     orbInterval: 1100,
-    krocoLevel: 2,
-    bossInterval: 2,
-    scoreMult: 2.5,
+    krocoLevel: 1, // Kroco langsung banyak
+    bossInterval: 2, // Boss muncul di Level 2!
+    scoreMult: 3.0,
     color: '#c850ff',
-    desc: 'HP Base 6.5k • 2 Nyawa • Super cepat & mematikan • Skor & Energi ×2.5!'
+    desc: 'HP Base 6.7k • 2 Nyawa • Hujan meteor kilat • Boss Lv 2 • Skor & Energi ×3.0!'
   }
 };
 
@@ -106,10 +118,14 @@ const HANGAR_UPGRADES = {
     icon: '🛸',
     desc: 'Pesawat mini pendamping yang nempel dan ikut menembak',
     levels: [
-      { level: 0, cost: 0,   val: 0, desc: 'Belum dipasang' },
-      { level: 1, cost: 50,  val: 1, desc: '1 Drone pendamping (tembakan samping)' },
-      { level: 2, cost: 150, val: 2, desc: '2 Drone pendamping (atas & bawah)' },
-      { level: 3, cost: 350, val: 2, desc: '2 Drone dengan peluru plasma kembar' },
+      { level: 0, cost: 0,    val: 0, desc: 'Belum dipasang' },
+      { level: 1, cost: 50,   val: 1, desc: '1 Drone pendamping (tembakan samping)' },
+      { level: 2, cost: 140,  val: 2, desc: '2 Drone pendamping (atas & bawah)' },
+      { level: 3, cost: 320,  val: 2, desc: '2 Drone peluru plasma kembar' },
+      { level: 4, cost: 650,  val: 3, desc: '3 Drone formasi segitiga tempur' },
+      { level: 5, cost: 1200, val: 4, desc: '4 Drone skuadron pelindung penuh' },
+      { level: 6, cost: 2400, val: 4, desc: '4 Hyper-Drone (Tembakan plasma laser super cepat)' },
+      { level: 7, cost: 4500, val: 4, desc: 'Ultimate Drone Armada (Damage drone +100%)' },
     ]
   },
   baseHP: {
@@ -117,10 +133,14 @@ const HANGAR_UPGRADES = {
     icon: '🏰',
     desc: 'Meningkatkan ketahanan dan total Darah Base utama',
     levels: [
-      { level: 0, cost: 0,   val: 15000, desc: '15.000 Max HP' },
-      { level: 1, cost: 40,  val: 22000, desc: '22.000 Max HP (+45% Darah)' },
-      { level: 2, cost: 120, val: 30000, desc: '30.000 Max HP (+100% Darah)' },
-      { level: 3, cost: 280, val: 42000, desc: '42.000 Max HP (+180% Darah)' },
+      { level: 0, cost: 0,    val: 15000,  desc: '15.000 Max HP' },
+      { level: 1, cost: 40,   val: 22000,  desc: '22.000 Max HP (+45% Darah)' },
+      { level: 2, cost: 120,  val: 32000,  desc: '32.000 Max HP (+110% Darah)' },
+      { level: 3, cost: 280,  val: 48000,  desc: '48.000 Max HP (+220% Darah)' },
+      { level: 4, cost: 550,  val: 70000,  desc: '70.000 Max HP (+360% Darah)' },
+      { level: 5, cost: 1100, val: 100000, desc: '100.000 Max HP (Kubah Mega-Fortress)' },
+      { level: 6, cost: 2200, val: 150000, desc: '150.000 Max HP (Aegis Titanium Core)' },
+      { level: 7, cost: 4000, val: 220000, desc: '220.000 Max HP (Benteng Kosmik Abadi)' },
     ]
   },
   damage: {
@@ -128,10 +148,15 @@ const HANGAR_UPGRADES = {
     icon: '💥',
     desc: 'Meningkatkan daya hancur peluru tembakan dasar pesawat',
     levels: [
-      { level: 0, cost: 0,   val: 1.0, desc: '1.0× Damage standar' },
-      { level: 1, cost: 50,  val: 1.4, desc: '1.4× Damage (+40%)' },
-      { level: 2, cost: 140, val: 1.9, desc: '1.9× Damage (+90%)' },
-      { level: 3, cost: 320, val: 2.6, desc: '2.6× Damage (+160%)' },
+      { level: 0, cost: 0,    val: 1.0,  desc: '1.0× Damage standar' },
+      { level: 1, cost: 50,   val: 1.4,  desc: '1.4× Damage (+40%)' },
+      { level: 2, cost: 130,  val: 1.9,  desc: '1.9× Damage (+90%)' },
+      { level: 3, cost: 300,  val: 2.6,  desc: '2.6× Damage (+160%)' },
+      { level: 4, cost: 600,  val: 3.5,  desc: '3.5× Damage (+250%)' },
+      { level: 5, cost: 1200, val: 4.8,  desc: '4.8× Damage (+380%)' },
+      { level: 6, cost: 2200, val: 6.5,  desc: '6.5× Damage (Hyper-Plasma)' },
+      { level: 7, cost: 3800, val: 8.5,  desc: '8.5× Damage (Antimatter Cannon)' },
+      { level: 8, cost: 6000, val: 12.0, desc: '12.0× Damage (Supernova Obliterator)' },
     ]
   },
   fireRate: {
@@ -139,10 +164,13 @@ const HANGAR_UPGRADES = {
     icon: '⚡',
     desc: 'Mempercepat frekuensi tembakan (cooldown lebih singkat)',
     levels: [
-      { level: 0, cost: 0,   val: 1.0, desc: 'Cooldown standar' },
-      { level: 1, cost: 50,  val: 0.75, desc: 'Tembakan +33% lebih cepat' },
-      { level: 2, cost: 140, val: 0.55, desc: 'Tembakan +80% lebih cepat' },
-      { level: 3, cost: 320, val: 0.40, desc: 'Hyper-Gatling +150% lebih cepat' },
+      { level: 0, cost: 0,    val: 1.0,  desc: 'Cooldown standar' },
+      { level: 1, cost: 50,   val: 0.78, desc: 'Tembakan +28% lebih cepat' },
+      { level: 2, cost: 140,  val: 0.60, desc: 'Tembakan +66% lebih cepat' },
+      { level: 3, cost: 320,  val: 0.45, desc: 'Hyper-Gatling +120% lebih cepat' },
+      { level: 4, cost: 700,  val: 0.34, desc: 'Sonic Gatling +190% lebih cepat' },
+      { level: 5, cost: 1400, val: 0.25, desc: 'Tachyon Stream +300% lebih cepat' },
+      { level: 6, cost: 2800, val: 0.18, desc: 'Infinity Firestorm (Laser nonstop!)' },
     ]
   },
   speed: {
@@ -150,9 +178,38 @@ const HANGAR_UPGRADES = {
     icon: '🚀',
     desc: 'Kecepatan manuver maju-mundur dan atas-bawah pesawat',
     levels: [
-      { level: 0, cost: 0,   val: 5.5, desc: 'Kecepatan standar 5.5' },
-      { level: 1, cost: 30,  val: 7.0, desc: 'Kecepatan 7.0 (+27%)' },
-      { level: 2, cost: 90,  val: 8.5, desc: 'Kecepatan 8.5 (+55%)' },
+      { level: 0, cost: 0,    val: 5.5,  desc: 'Kecepatan standar 5.5' },
+      { level: 1, cost: 30,   val: 7.0,  desc: 'Kecepatan 7.0 (+27%)' },
+      { level: 2, cost: 90,   val: 8.5,  desc: 'Kecepatan 8.5 (+55%)' },
+      { level: 3, cost: 240,  val: 10.2, desc: 'Kecepatan 10.2 (+85%)' },
+      { level: 4, cost: 550,  val: 12.0, desc: 'Kecepatan 12.0 (+118%)' },
+      { level: 5, cost: 1200, val: 14.0, desc: 'Warp Boosters 14.0 (Manuver Kilat)' },
+    ]
+  },
+  shieldMatrix: {
+    name: 'Shield Matrix Core',
+    icon: '🛡️',
+    desc: 'Meningkatkan nyawa cadangan pilot & perlindungan perisai ekstra',
+    levels: [
+      { level: 0, cost: 0,    livesBonus: 0, shieldBonus: false, desc: 'Tanpa bonus perisai awal' },
+      { level: 1, cost: 75,   livesBonus: 1, shieldBonus: false, desc: '+1 Nyawa Ekstra untuk Pilot' },
+      { level: 2, cost: 220,  livesBonus: 1, shieldBonus: true,  desc: '+1 Nyawa + Selalu mulai dengan Perisai' },
+      { level: 3, cost: 550,  livesBonus: 2, shieldBonus: true,  desc: '+2 Nyawa + Perisai Awal' },
+      { level: 4, cost: 1300, livesBonus: 3, shieldBonus: true,  desc: '+3 Nyawa + Perisai Awal' },
+      { level: 5, cost: 2800, livesBonus: 4, shieldBonus: true,  desc: '+4 Nyawa + Titanium Invulnerability' },
+    ]
+  },
+  energyMagnet: {
+    name: 'Energy Harvester',
+    icon: '🔋',
+    desc: 'Meningkatkan perolehan ⚡ Energi dari setiap pertempuran & meteor',
+    levels: [
+      { level: 0, cost: 0,    mult: 1.0, desc: 'Perolehan energi normal (1.0×)' },
+      { level: 1, cost: 60,   mult: 1.3, desc: '+30% Bonus Energi di akhir pertempuran' },
+      { level: 2, cost: 180,  mult: 1.7, desc: '+70% Bonus Energi' },
+      { level: 3, cost: 450,  mult: 2.3, desc: '+130% Bonus Energi' },
+      { level: 4, cost: 1100, mult: 3.2, desc: '+220% Bonus Energi' },
+      { level: 5, cost: 2500, mult: 4.5, desc: 'Hyper-Harvester (+350% Bonus Energi Raksasa!)' },
     ]
   }
 };
@@ -647,11 +704,21 @@ class Ship {
     this.x = 110;
     this.y = HEIGHT / 2;
 
-    // Permanent upgrades applied from Hangar
-    const upgSpeed = HANGAR_UPGRADES.speed.levels[Storage.getUpgradeLevel('speed')].val;
-    const upgDmg   = HANGAR_UPGRADES.damage.levels[Storage.getUpgradeLevel('damage')].val;
-    const upgRate  = HANGAR_UPGRADES.fireRate.levels[Storage.getUpgradeLevel('fireRate')].val;
-    this.droneCount = HANGAR_UPGRADES.drones.levels[Storage.getUpgradeLevel('drones')].val;
+    // Permanent upgrades applied from Hangar (safe bounded lookup)
+    const getUpgVal = (cat, defVal) => {
+      const list = HANGAR_UPGRADES[cat]?.levels;
+      if (!list) return defVal;
+      const lvl = Storage.getUpgradeLevel(cat);
+      return (list[lvl] || list[list.length - 1]).val ?? defVal;
+    };
+
+    const upgSpeed = getUpgVal('speed', 5.5);
+    const upgDmg   = getUpgVal('damage', 1.0);
+    const upgRate  = getUpgVal('fireRate', 1.0);
+    const droneLvl = Storage.getUpgradeLevel('drones');
+    const droneDef = HANGAR_UPGRADES.drones.levels[droneLvl] || HANGAR_UPGRADES.drones.levels[0];
+    this.droneCount = droneDef.val || 0;
+    this.droneLevel = droneLvl;
 
     this.baseSpeed = upgSpeed;
     this.speedMult = 1.0;
@@ -662,8 +729,8 @@ class Ship {
     this.baseCd    = 13;
     this.shootCd   = 0;
 
-    this.lives      = 4; // 4 Nyawa standar (lebih bersahabat)
-    this.shield     = true; // Mulai dengan 1 Pelindung Perisai Gratis!
+    this.lives      = 4; // Bounded by mode in _reset()
+    this.shield     = true;
     this.invincible = 0;
 
     this.shieldPulse = 0;
@@ -706,12 +773,22 @@ class Ship {
       bullets.push(new Bullet(tx, this.y, 0, this.damage));
     }
 
-    // Wingman Drones tembak peluru mini tambahan
+    // Wingman Drones tembak peluru mini tambahan (bertingkat hingga 4 drone)
+    const droneDmg = this.damage * 0.65 * (this.droneLevel >= 7 ? 2.0 : this.droneLevel >= 6 ? 1.4 : 1.0);
     if (this.droneCount >= 1) {
-      bullets.push(new Bullet(this.x - 4, this.y - 25, 0, this.damage * 0.6, true));
+      bullets.push(new Bullet(this.x - 4, this.y - 25, 0, droneDmg, true));
     }
     if (this.droneCount >= 2) {
-      bullets.push(new Bullet(this.x - 4, this.y + 25, 0, this.damage * 0.6, true));
+      bullets.push(new Bullet(this.x - 4, this.y + 25, 0, droneDmg, true));
+    }
+    if (this.droneCount >= 3) {
+      bullets.push(new Bullet(this.x - 24, this.y, 0, droneDmg * 1.1, true));
+    }
+    if (this.droneCount >= 4) {
+      bullets.push(
+        new Bullet(this.x + 8, this.y - 35, -7, droneDmg, true),
+        new Bullet(this.x + 8, this.y + 35, 7, droneDmg, true)
+      );
     }
 
     return bullets;
@@ -790,12 +867,13 @@ class Ship {
 
     ctx.restore();
 
-    // Render Wingman Drones nempel pada kapal player
-    if (this.droneCount >= 1) {
-      this._drawDrone(ctx, this.x - 10, this.y - 25);
-    }
-    if (this.droneCount >= 2) {
-      this._drawDrone(ctx, this.x - 10, this.y + 25);
+    // Render Wingman Drones nempel pada kapal player (hingga 4 drone)
+    if (this.droneCount >= 1) this._drawDrone(ctx, this.x - 10, this.y - 25);
+    if (this.droneCount >= 2) this._drawDrone(ctx, this.x - 10, this.y + 25);
+    if (this.droneCount >= 3) this._drawDrone(ctx, this.x - 24, this.y);
+    if (this.droneCount >= 4) {
+      this._drawDrone(ctx, this.x + 10, this.y - 36);
+      this._drawDrone(ctx, this.x + 10, this.y + 36);
     }
 
     // Shield bubble
@@ -950,51 +1028,66 @@ class EnemyBullet {
 // ═══════════════════════════════════════════════════════════
 class Meteor {
   constructor(difficulty = 1, options = {}) {
-    this.isSplitter = false;
+    this.id = options.id || ('m_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7));
+    this.isSplitter = options.isSplitter !== undefined ? options.isSplitter : false;
     this.isChild = options.isChild || false;
 
-    if (this.isChild) {
+    if (options.preset) {
+      // Direct synchronization from host in multiplayer!
+      this.type = options.type;
+      this.radius = options.radius;
+      this.speed = options.speed;
+      this.hp = options.hp;
+      this.maxHp = options.maxHp;
+      this.colorStr = options.colorStr;
+      this.isSplitter = options.isSplitter;
+      this.isChild = options.isChild;
+      this.x = options.x;
+      this.y = options.y;
+      this.vy = options.vy || 0;
+      this.damageBaseMult = options.damageBaseMult || 1.0;
+    } else if (this.isChild) {
       this.type = 'small';
       this.radius = options.radius || 18;
       this.speed = options.speed || 3.0;
-      this.hp = 1;
-      this.maxHp = 1;
+      this.hp = Math.max(1, options.hp || 1);
+      this.maxHp = this.hp;
       this.colorStr = options.colorStr || '#87735a';
       this.x = options.x;
       this.y = options.y;
       this.vy = options.vy || 0;
+      this.damageBaseMult = options.damageBaseMult || 1.0;
     } else {
       const roll = Math.random();
+      const hpMult = options.hpMult || 1.0;
       // Splitter / Tank Meteor besar (bisa membelah 2)
-      if (difficulty >= 2.0 && roll < 0.25) {
+      if (difficulty >= 1.8 && roll < 0.28) {
         this.type = 'tank';
         this.isSplitter = true; // BISA TERBELAH DUA SAAT HANCUR
         this.radius = randInt(32, 44);
-        this.speed = Math.min(0.9 + difficulty * 0.18, 2.4);
-        this.hp = Math.max(2, Math.floor(this.radius * 0.08 * difficulty));
+        this.speed = Math.min(1.0 + difficulty * 0.22, 3.0);
+        this.hp = Math.max(2, Math.round(this.radius * 0.08 * difficulty * hpMult));
         this.colorStr = '#42283c'; // Obsidian gelap
-      } else if (roll > 0.78) {
+      } else if (roll > 0.72) {
         this.type = 'fast';
         this.radius = randInt(14, 20);
-        this.speed = Math.min(2.0 + difficulty * 0.32, 5.0);
-        this.hp = 1;
+        this.speed = Math.min(2.4 + difficulty * 0.38, 5.8);
+        this.hp = Math.max(1, Math.round(1 * hpMult));
         this.colorStr = '#ff4d4d'; // Merah cepat
       } else {
         this.type = 'normal';
         this.radius = randInt(18, 30);
-        this.speed = Math.min(1.1 + difficulty * 0.25, 3.8);
-        this.hp = Math.max(1, Math.floor(this.radius * 0.06 * difficulty));
+        this.speed = Math.min(1.2 + difficulty * 0.28, 4.2);
+        this.hp = Math.max(1, Math.round(this.radius * 0.06 * difficulty * hpMult));
         this.colorStr = choice(METEOR_PALETTES);
       }
       this.maxHp = this.hp;
       this.x = WIDTH + this.radius + 10;
       this.y = randFloat(this.radius + 15, HEIGHT - this.radius - 15);
       this.vy = 0;
+      this.speed = this.speed * (options.speedMult || 1.0);
+      this.damageBaseMult = options.damageBaseMult || 1.0;
     }
-
-    const speedMult = options.speedMult || 1.0;
-    this.speed = this.speed * speedMult;
-    this.damageBaseMult = options.damageBaseMult || 1.0;
 
     this.angle    = randFloat(0, Math.PI * 2);
     this.rotSpeed = randFloat(-0.03, 0.03);
@@ -1002,6 +1095,25 @@ class Meteor {
 
     this._verts   = this._genVerts();
     this._craters = this._genCraters();
+  }
+
+  toPreset() {
+    return {
+      preset: true,
+      id: this.id,
+      type: this.type,
+      radius: this.radius,
+      speed: this.speed,
+      hp: this.hp,
+      maxHp: this.maxHp,
+      colorStr: this.colorStr,
+      isSplitter: this.isSplitter,
+      isChild: this.isChild,
+      x: Math.round(this.x),
+      y: Math.round(this.y),
+      vy: this.vy,
+      damageBaseMult: this.damageBaseMult
+    };
   }
 
   _genVerts() {
@@ -1107,12 +1219,13 @@ class Meteor {
 //  MUSUH KROCO (ALIEN SCOUT SHIP)
 // ═══════════════════════════════════════════════════════════
 class Kroco {
-  constructor(difficulty = 1) {
-    this.x = WIDTH + 40;
-    this.y = randFloat(80, HEIGHT - 80);
-    this.speed = randFloat(1.6, 2.4);
-    this.hp = Math.max(1, Math.floor(1 + difficulty * 0.3));
-    this.maxHp = this.hp;
+  constructor(difficulty = 1, options = {}) {
+    this.id = options.id || ('k_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+    this.x = options.x !== undefined ? options.x : WIDTH + 40;
+    this.y = options.y !== undefined ? options.y : randFloat(80, HEIGHT - 80);
+    this.speed = options.speed || randFloat(1.6, 2.4);
+    this.hp = options.hp || Math.max(1, Math.floor(1 + difficulty * 0.3));
+    this.maxHp = options.maxHp || this.hp;
     this.w = 34;
     this.h = 24;
     this.wobble = randFloat(0, Math.PI * 2);
@@ -1324,20 +1437,26 @@ class Game {
     this.mode = DIFFICULTY_MODES[modeKey] || DIFFICULTY_MODES.medium;
 
     this.ship = new Ship(false);
-    this.ship.lives = this.mode.lives;
-    this.ship.shield = this.mode.shieldStart;
+
+    // Apply shieldMatrix permanent upgrades
+    const shieldLvl = Storage.getUpgradeLevel('shieldMatrix');
+    const matrixDef = (HANGAR_UPGRADES.shieldMatrix?.levels[shieldLvl]) || HANGAR_UPGRADES.shieldMatrix.levels[0];
+    this.ship.lives = this.mode.lives + (matrixDef.livesBonus || 0);
+    this.ship.shield = this.mode.shieldStart || matrixDef.shieldBonus;
 
     if (this.isMultiplayer) {
       this.peerShip = new Ship(true);
-      this.peerShip.lives = this.mode.lives;
-      this.peerShip.shield = this.mode.shieldStart;
+      this.peerShip.lives = this.ship.lives;
+      this.peerShip.shield = this.ship.shield;
       this.peerShip.y = HEIGHT / 2 + 60;
     } else {
       this.peerShip = null;
     }
 
     // Base HP diinisialisasi dari upgrade Hangar & disesuaikan Mode Kesulitan
-    const upgBaseHP = HANGAR_UPGRADES.baseHP.levels[Storage.getUpgradeLevel('baseHP')].val;
+    const baseHPList = HANGAR_UPGRADES.baseHP.levels;
+    const baseHPLvl = Storage.getUpgradeLevel('baseHP');
+    const upgBaseHP = (baseHPList[baseHPLvl] || baseHPList[baseHPList.length - 1]).val;
     this.baseMaxHp  = Math.round(upgBaseHP * this.mode.baseHpBonus);
     this.baseHp     = this.baseMaxHp;
 
@@ -1355,7 +1474,7 @@ class Game {
     this.level         = 1;
     this.difficulty    = 1;
     this.spawnTimer    = 0;
-    this.spawnInterval = 120;
+    this.spawnInterval = this.mode ? this.mode.spawnInterval : 75;
     this.diffTimer     = 0;
     this.orbSpawnTimer = 400;
 
@@ -1368,6 +1487,34 @@ class Game {
     Storage.updateEnergyUI();
     Storage.incStat('games_played', 1);
     this._checkAchievements();
+  }
+
+  _broadcastMP(msg) {
+    if (this.isMultiplayer && this.ws && this.ws.readyState === WebSocket.OPEN) {
+      try {
+        this.ws.send(JSON.stringify(msg));
+      } catch {}
+    }
+  }
+
+  _addScore(amount) {
+    const prevMilestone = Math.floor(this.score / 100000);
+    this.score += amount;
+    const newMilestone = Math.floor(this.score / 100000);
+
+    if (newMilestone > prevMilestone) {
+      const earnedMilestones = newMilestone - prevMilestone;
+      const energyBonus = earnedMilestones * 10;
+      Storage.addEnergy(energyBonus);
+      this.snd.upgrade();
+      this.floatingTexts.push(new FloatingText(
+        WIDTH / 2,
+        HEIGHT / 2 - 40,
+        `🎉 TERCAPAI ${(newMilestone * 100).toLocaleString()}K SKOR! +${energyBonus} ⚡ ENERGI`,
+        '#32c850',
+        22
+      ));
+    }
   }
 
   _hideTopBar() {
@@ -1455,6 +1602,16 @@ class Game {
     this.shake = Math.min(18, this.shake + 10);
     this.floatingTexts.push(new FloatingText(50, randFloat(HEIGHT / 2 - 80, HEIGHT / 2 + 80), `-${amount} BASE HP!`, '#ff2244', 22));
 
+    if (this.isMultiplayer && this.isHost) {
+      this._broadcastMP({
+        type: 'SYNC_GAME_STATE',
+        baseHp: this.baseHp,
+        baseMaxHp: this.baseMaxHp,
+        score: this.score,
+        level: this.level
+      });
+    }
+
     if (this.baseHp <= 0) {
       this._gameOver('BASE PERTAHANAN HANCUR!');
     }
@@ -1470,9 +1627,13 @@ class Game {
       try { localStorage.setItem('meteor_high_score', String(this.highScore)); } catch {}
     }
 
-    // Hitung Energi yang didapat: tergantung score, level, & pengali mode kesulitan
+    // Hitung Energi yang didapat: tergantung score, level, pengali mode kesulitan & upgrade energyMagnet
+    const harvestDef = HANGAR_UPGRADES.energyMagnet?.levels;
+    const harvestLvl = Storage.getUpgradeLevel('energyMagnet');
+    const harvestMult = (harvestDef && harvestDef[harvestLvl] ? harvestDef[harvestLvl].mult : 1.0);
+
     const scoreMult = this.mode ? this.mode.scoreMult : 1.25;
-    const earnedEnergy = Math.max(25, Math.floor((this.score / 25 + this.level * 30 + 40) * scoreMult));
+    const earnedEnergy = Math.max(25, Math.floor((this.score / 25 + this.level * 30 + 40) * scoreMult * harvestMult));
     Storage.addEnergy(earnedEnergy);
     this.lastEarnedEnergy = earnedEnergy;
 
@@ -1505,8 +1666,12 @@ class Game {
           if (m.hit(b.damage)) {
             deadM.add(mi);
             const pts = Math.max(10, Math.floor(m.radius * m.maxHp * 5));
-            this.score += pts;
+            this._addScore(pts);
             Storage.incStat('meteors_hit', 1);
+
+            if (this.isMultiplayer) {
+              this._broadcastMP({ type: 'METEOR_DESTROY', id: m.id });
+            }
 
             // METEOR BESAR TERBELAH DUA (SPLITTER MECHANIC)
             if (m.isSplitter && !m.isChild) {
@@ -1514,10 +1679,17 @@ class Game {
               this.snd.split();
               this.floatingTexts.push(new FloatingText(m.x, m.y - 20, '💥 SPLIT!', '#00dcff', 18));
               // Spawn 2 pecahan kecil
-              this.meteors.push(
-                new Meteor(this.difficulty, { isChild: true, x: m.x, y: m.y - 14, vy: -1.2, radius: 18, speed: m.speed * 1.2, colorStr: m.colorStr }),
-                new Meteor(this.difficulty, { isChild: true, x: m.x, y: m.y + 14, vy: 1.2,  radius: 18, speed: m.speed * 1.2, colorStr: m.colorStr })
-              );
+              const c1 = new Meteor(this.difficulty, { isChild: true, x: m.x, y: m.y - 14, vy: -1.2, radius: 18, speed: m.speed * 1.2, colorStr: m.colorStr });
+              const c2 = new Meteor(this.difficulty, { isChild: true, x: m.x, y: m.y + 14, vy: 1.2,  radius: 18, speed: m.speed * 1.2, colorStr: m.colorStr });
+              this.meteors.push(c1, c2);
+
+              if (this.isMultiplayer) {
+                this._broadcastMP({
+                  type: 'SPAWN_METEORS_BATCH',
+                  meteors: [c1.toPreset(), c2.toPreset()],
+                  difficulty: this.difficulty
+                });
+              }
             }
 
             this.floatingTexts.push(new FloatingText(m.x, m.y, `+${pts}`, '#ffdc32', 15));
@@ -1526,6 +1698,9 @@ class Game {
             if (m.type === 'tank') this.shake = Math.max(this.shake, 6);
           } else {
             this._explode(b.x, b.y, b.color, 5);
+            if (this.isMultiplayer) {
+              this._broadcastMP({ type: 'METEOR_DAMAGE', id: m.id, damage: b.damage });
+            }
           }
           break;
         }
@@ -1543,11 +1718,14 @@ class Game {
           deadB.add(bi);
           if (k.hit(b.damage)) {
             deadK.add(ki);
-            this.score += 250;
+            this._addScore(250);
             Storage.incStat('kroco_hit', 1);
             this.floatingTexts.push(new FloatingText(k.x, k.y, '+250', '#ff5577', 16));
             this._explode(k.x, k.y, '#ff0055', 28);
             this.snd.explode(false);
+            if (this.isMultiplayer) {
+              this._broadcastMP({ type: 'KROCO_HIT', id: k.id, damage: b.damage });
+            }
           }
           break;
         }
@@ -1565,13 +1743,16 @@ class Game {
           this._explode(b.x, b.y, '#ff0055', 6);
           if (this.boss.hit(b.damage)) {
             // Boss Defeated!
-            this.score += 5000;
+            this._addScore(5000);
             Storage.incStat('boss_hit', 1);
             Storage.addEnergy(200);
             this._explode(this.boss.x, this.boss.y, '#ff0055', 60);
             this._explode(this.boss.x, this.boss.y, '#ffdc32', 40);
             this.snd.explode(true);
             this.floatingTexts.push(new FloatingText(WIDTH / 2, HEIGHT / 2, '👑 BOSS DEFEATED! +5,000 PTS & +200 ⚡', '#ffdc32', 24));
+            if (this.isMultiplayer) {
+              this._broadcastMP({ type: 'BOSS_DEFEATED' });
+            }
             this.boss = null;
             break;
           }
@@ -1695,7 +1876,13 @@ class Game {
       if (this.isMultiplayer && this.ws && this.ws.readyState === WebSocket.OPEN && newB.length > 0) {
         this.ws.send(JSON.stringify({
           type: 'PLAYER_SHOOT',
-          payload: { x: this.ship.x, y: this.ship.y }
+          payload: {
+            x: this.ship.x,
+            y: this.ship.y,
+            damage: this.ship.damage,
+            triple: this.ship.triple,
+            droneCount: this.ship.droneCount
+          }
         }));
       }
     }
@@ -1706,31 +1893,84 @@ class Game {
     for (const eb of this.enemyBullets) eb.update();
     this.enemyBullets = this.enemyBullets.filter(eb => !eb.offScreen);
 
-    // Spawn Meteor dari Kanan (disesuaikan dengan mode kesulitan)
+    // Spawn Meteor dari Kanan (Hanya Host yang spawn jika multiplayer)
     const mOpts = {
       speedMult: this.mode ? this.mode.speedMult : 1.0,
+      hpMult: this.mode ? this.mode.hpMult : 1.0,
       damageBaseMult: this.mode ? this.mode.damageBaseMult : 1.0
     };
-    if (++this.spawnTimer >= this.spawnInterval) {
-      this.spawnTimer = 0;
-      this.meteors.push(new Meteor(this.difficulty, mOpts));
-      if (this.difficulty > 2.8 && Math.random() < 0.25)
-        this.meteors.push(new Meteor(this.difficulty, mOpts));
+
+    if (!this.isMultiplayer || this.isHost) {
+      if (++this.spawnTimer >= this.spawnInterval) {
+        this.spawnTimer = 0;
+        const burst = (this.mode && this.mode.spawnBurstMax > 1)
+          ? randInt(1, this.mode.spawnBurstMax)
+          : 1;
+
+        const newMeteors = [];
+        for (let i = 0; i < burst; i++) {
+          const m = new Meteor(this.difficulty, mOpts);
+          this.meteors.push(m);
+          newMeteors.push(m.toPreset());
+        }
+
+        if (this.isMultiplayer && newMeteors.length > 0) {
+          this._broadcastMP({
+            type: 'SPAWN_METEORS_BATCH',
+            meteors: newMeteors,
+            difficulty: this.difficulty
+          });
+        }
+      }
     }
 
-    // Spawn Kroco Alien Drones (Sesuai mode kesulitan)
-    const krocoMinLvl = this.mode ? this.mode.krocoLevel : 3;
-    if (this.level >= krocoMinLvl && Math.random() < 0.005 + this.difficulty * 0.002 && this.krocos.length < 2) {
-      this.krocos.push(new Kroco(this.difficulty));
+    // Spawn Kroco Alien Drones (Hanya Host yang spawn jika multiplayer)
+    if (!this.isMultiplayer || this.isHost) {
+      const krocoMinLvl = this.mode ? this.mode.krocoLevel : 3;
+      const krocoRate = (this.mode && this.mode.id === 'extreme') ? 0.025 : (this.mode && this.mode.id === 'hard') ? 0.012 : 0.005;
+      const krocoMax = (this.mode && this.mode.id === 'extreme') ? 4 : (this.mode && this.mode.id === 'hard') ? 3 : 2;
+
+      if (this.level >= krocoMinLvl && Math.random() < krocoRate + this.difficulty * 0.002 && this.krocos.length < krocoMax) {
+        const k = new Kroco(this.difficulty);
+        this.krocos.push(k);
+        if (this.isMultiplayer) {
+          this._broadcastMP({
+            type: 'SPAWN_KROCO',
+            id: k.id,
+            x: k.x,
+            y: k.y,
+            hp: k.hp,
+            maxHp: k.maxHp,
+            speed: k.speed
+          });
+        }
+      }
     }
 
-    // Spawn Boss (Dreadnought) sesuai interval mode kesulitan
-    const bossInterval = this.mode ? this.mode.bossInterval : 4;
-    if (this.level >= bossInterval && !this.boss && (this.level % bossInterval === 0) && this.diffTimer === 1) {
-      this.boss = new Boss(this.level);
-      this.bossAlert = 180;
-      this.snd.bossWarning();
-      this.shake = 16;
+    // Spawn Boss (Hanya Host yang spawn jika multiplayer)
+    if (!this.isMultiplayer || this.isHost) {
+      const bossInterval = this.mode ? this.mode.bossInterval : 4;
+      if (this.level >= bossInterval && !this.boss && (this.level % bossInterval === 0) && this.diffTimer === 1) {
+        this.boss = new Boss(this.level);
+        this.bossAlert = 180;
+        this.snd.bossWarning();
+        this.shake = 16;
+        if (this.isMultiplayer) {
+          this._broadcastMP({ type: 'SPAWN_BOSS', level: this.level });
+        }
+      }
+    }
+
+    // Host periodically syncs positions & health to guest every 20 ticks (~3x/sec)
+    if (this.isMultiplayer && this.isHost && this.tick % 20 === 0) {
+      this._broadcastMP({
+        type: 'SYNC_GAME_STATE',
+        baseHp: this.baseHp,
+        baseMaxHp: this.baseMaxHp,
+        score: this.score,
+        level: this.level,
+        meteors: this.meteors.slice(0, 35).map(m => ({ id: m.id, x: Math.round(m.x), y: Math.round(m.y), hp: m.hp }))
+      });
     }
 
     // Update Krocos
@@ -1747,16 +1987,33 @@ class Game {
       const bShots = this.boss.tryShoot(this.snd);
       if (bShots.length) this.enemyBullets.push(...bShots);
       const minion = this.boss.trySpawnMinion();
-      if (minion) this.krocos.push(minion);
+      if (minion) {
+        this.krocos.push(minion);
+        if (this.isMultiplayer && this.isHost) {
+          this._broadcastMP({
+            type: 'SPAWN_KROCO',
+            id: minion.id,
+            x: minion.x,
+            y: minion.y,
+            hp: minion.hp,
+            maxHp: minion.maxHp,
+            speed: minion.speed
+          });
+        }
+      }
     }
 
     // Spawn Orb Upgrade Bulat
     const orbSpawnInt = this.mode ? this.mode.orbInterval : 700;
-    if (this.upgradeOrbs.length === 0 && ++this.orbSpawnTimer >= orbSpawnInt) {
+    if (this.upgradeOrbs.length === 0 && ++this.orbSpawnTimer >= orbSpawnInt && (!this.isMultiplayer || this.isHost)) {
       this.orbSpawnTimer = 0;
       const pick = choice(UPGRADE_DEFS);
-      this.upgradeOrbs.push(new UpgradeOrb(pick));
+      const orb = new UpgradeOrb(pick);
+      this.upgradeOrbs.push(orb);
       this.floatingTexts.push(new FloatingText(WIDTH - 160, 50, '✦ SKILL ORB INCOMING! ✦', '#00dcff', 16));
+      if (this.isMultiplayer) {
+        this._broadcastMP({ type: 'SPAWN_ORB', kind: pick.kind, x: orb.x, y: orb.y });
+      }
     }
 
     for (const orb of this.upgradeOrbs) orb.update();
@@ -2136,8 +2393,22 @@ class Game {
     }
 
     const bg = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    bg.addColorStop(0, '#0a0a16');
-    bg.addColorStop(1, '#180922');
+    if (this.mode && this.mode.id === 'extreme') {
+      bg.addColorStop(0, '#160416');
+      bg.addColorStop(0.5, '#2b061d');
+      bg.addColorStop(1, '#0e020d');
+    } else if (this.mode && this.mode.id === 'hard') {
+      bg.addColorStop(0, '#170407');
+      bg.addColorStop(0.5, '#280710');
+      bg.addColorStop(1, '#0c0205');
+    } else if (this.mode && this.mode.id === 'easy') {
+      bg.addColorStop(0, '#040d16');
+      bg.addColorStop(0.5, '#061722');
+      bg.addColorStop(1, '#020910');
+    } else {
+      bg.addColorStop(0, '#0a0a16');
+      bg.addColorStop(1, '#180922');
+    }
     ctx.fillStyle = bg;
     ctx.fillRect(-20, -20, WIDTH + 40, HEIGHT + 40);
 
@@ -2484,8 +2755,108 @@ const ModalUI = {
     }
     if (msg.type === 'PLAYER_SHOOT') {
       if (this.game.peerShip) {
-        this.game.bullets.push(new Bullet(msg.payload.x + 50, msg.payload.y, 0, 1.2));
+        const p = msg.payload || {};
+        const px = p.x !== undefined ? p.x : this.game.peerShip.x;
+        const py = p.y !== undefined ? p.y : this.game.peerShip.y;
+        const dmg = p.damage || 1.0;
         this.game.snd.shoot();
+        if (p.triple) {
+          this.game.bullets.push(
+            new Bullet(px + 50, py, -12, dmg),
+            new Bullet(px + 50, py, 0, dmg),
+            new Bullet(px + 50, py, 12, dmg)
+          );
+        } else {
+          this.game.bullets.push(new Bullet(px + 50, py, 0, dmg));
+        }
+        if (p.droneCount >= 1) {
+          this.game.bullets.push(new Bullet(px - 4, py - 25, 0, dmg * 0.65, true));
+        }
+        if (p.droneCount >= 2) {
+          this.game.bullets.push(new Bullet(px - 4, py + 25, 0, dmg * 0.65, true));
+        }
+      }
+    }
+    if (msg.type === 'SPAWN_METEORS_BATCH') {
+      if (!this.game.isHost && Array.isArray(msg.meteors)) {
+        for (const mData of msg.meteors) {
+          this.game.meteors.push(new Meteor(msg.difficulty || 1, mData));
+        }
+      }
+    }
+    if (msg.type === 'METEOR_DESTROY') {
+      const target = this.game.meteors.find(m => m.id === msg.id);
+      if (target) {
+        this.game.meteors = this.game.meteors.filter(m => m.id !== msg.id);
+        this.game._explode(target.x, target.y, target.colorStr, target.type === 'tank' ? 36 : 24);
+        this.game.snd.explode(target.type === 'tank');
+      }
+    }
+    if (msg.type === 'METEOR_DAMAGE') {
+      const target = this.game.meteors.find(m => m.id === msg.id);
+      if (target) {
+        target.hit(msg.damage);
+      }
+    }
+    if (msg.type === 'SPAWN_KROCO') {
+      if (!this.game.isHost) {
+        const k = new Kroco(this.game.difficulty, msg);
+        this.game.krocos.push(k);
+      }
+    }
+    if (msg.type === 'KROCO_HIT') {
+      const k = this.game.krocos.find(item => item.id === msg.id);
+      if (k && k.hit(msg.damage)) {
+        this.game.krocos = this.game.krocos.filter(item => item.id !== msg.id);
+        this.game._explode(k.x, k.y, '#ff0055', 28);
+        this.game.snd.explode(false);
+      }
+    }
+    if (msg.type === 'SPAWN_BOSS') {
+      if (!this.game.isHost) {
+        this.game.boss = new Boss(msg.level || this.game.level);
+        this.game.bossAlert = 180;
+        this.game.snd.bossWarning();
+        this.game.shake = 16;
+      }
+    }
+    if (msg.type === 'BOSS_DEFEATED') {
+      if (this.game.boss) {
+        this.game._explode(this.game.boss.x, this.game.boss.y, '#ff0055', 60);
+        this.game._explode(this.game.boss.x, this.game.boss.y, '#ffdc32', 40);
+        this.game.snd.explode(true);
+        this.game.floatingTexts.push(new FloatingText(WIDTH / 2, HEIGHT / 2, '👑 BOSS DEFEATED! +5,000 PTS & +200 ⚡', '#ffdc32', 24));
+        this.game.boss = null;
+      }
+    }
+    if (msg.type === 'SPAWN_ORB') {
+      if (!this.game.isHost) {
+        const def = UPGRADE_DEFS.find(u => u.kind === msg.kind) || UPGRADE_DEFS[0];
+        const orb = new UpgradeOrb(def);
+        orb.x = msg.x;
+        orb.y = msg.y;
+        this.game.upgradeOrbs.push(orb);
+      }
+    }
+    if (msg.type === 'SYNC_GAME_STATE') {
+      if (!this.game.isHost) {
+        if (msg.baseHp !== undefined) this.game.baseHp = msg.baseHp;
+        if (msg.baseMaxHp !== undefined) this.game.baseMaxHp = msg.baseMaxHp;
+        if (msg.score !== undefined) this.game.score = msg.score;
+        if (msg.level !== undefined) this.game.level = msg.level;
+        if (Array.isArray(msg.meteors)) {
+          const hostIds = new Set();
+          for (const hm of msg.meteors) {
+            hostIds.add(hm.id);
+            const local = this.game.meteors.find(m => m.id === hm.id);
+            if (local) {
+              local.x = (local.x * 0.7) + (hm.x * 0.3);
+              local.y = (local.y * 0.7) + (hm.y * 0.3);
+              local.hp = hm.hp;
+            }
+          }
+          this.game.meteors = this.game.meteors.filter(m => hostIds.has(m.id) || m.x > WIDTH - 100);
+        }
       }
     }
     if (msg.type === 'PEER_DISCONNECTED') {
