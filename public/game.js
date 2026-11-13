@@ -248,6 +248,50 @@ function darkenHex(hex, amt = 50) {
 }
 
 // ═══════════════════════════════════════════════════════════
+//  TITLE LOGOS & BRANDING
+// ═══════════════════════════════════════════════════════════
+const LOGO1_SRC = 'logo1.png';
+const LOGO1_REMOTE = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzVWMpmKi_5TTDgk1QvfAH4zGKXENVu0u9SpiUAWlV0A&s=10';
+const LOGO2_SRC = 'logo2.png';
+const LOGO2_REMOTE = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGGlyaxQlN66lLjse4k1d8rMKQPTRhLCFg6tOxVgwA5A&s=10';
+
+const titleLogo1 = new Image();
+titleLogo1.src = LOGO1_SRC;
+titleLogo1.onerror = () => { if (titleLogo1.src !== LOGO1_REMOTE) titleLogo1.src = LOGO1_REMOTE; };
+
+const titleLogo2 = new Image();
+titleLogo2.src = LOGO2_SRC;
+titleLogo2.onerror = () => { if (titleLogo2.src !== LOGO2_REMOTE) titleLogo2.src = LOGO2_REMOTE; };
+
+function drawRoundedImage(ctx, img, x, y, size, radius = 10, glowColor = '#00dcff') {
+  if (!img.complete || !img.naturalWidth) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + size - radius, y);
+  ctx.quadraticCurveTo(x + size, y, x + size, y + radius);
+  ctx.lineTo(x + size, y + size - radius);
+  ctx.quadraticCurveTo(x + size, y + size, x + size - radius, y + size);
+  ctx.lineTo(x + radius, y + size);
+  ctx.quadraticCurveTo(x, y + size, x, y + size - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+
+  ctx.save();
+  ctx.clip();
+  ctx.drawImage(img, x, y, size, size);
+  ctx.restore();
+
+  ctx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
+  ctx.lineWidth = 2.5;
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = glowColor;
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════
 //  SOUND ENGINE  (Web Audio API — zero external files)
 // ═══════════════════════════════════════════════════════════
 class SoundEngine {
@@ -1955,12 +1999,22 @@ class Game {
     const tr = Math.floor(80 + pulse * 7);
     const tg = Math.floor(170 + pulse * 2);
 
+    // 1. Logo di Halaman Utama (Dua logo di tengah atas)
+    const logoSize = 64;
+    const gap = 16;
+    const totalW = logoSize * 2 + gap;
+    const startX = (WIDTH - totalW) / 2;
+    const logoY = 46;
+
+    drawRoundedImage(ctx, titleLogo1, startX, logoY, logoSize, 12, '#00dcff');
+    drawRoundedImage(ctx, titleLogo2, startX + logoSize + gap, logoY, logoSize, 12, '#ffdc32');
+
     ctx.save();
     ctx.shadowBlur  = 32; ctx.shadowColor = `rgb(${tr},${tg},255)`;
     ctx.fillStyle   = `rgb(${tr},${tg},255)`;
     ctx.font        = 'bold 72px Impact, Arial, sans-serif';
     ctx.textAlign   = 'center';
-    ctx.fillText('METEOR BLASTER', WIDTH / 2, HEIGHT / 3 - 10);
+    ctx.fillText('METEOR BLASTER', WIDTH / 2, HEIGHT / 3 - 6);
     ctx.restore();
 
     const activeMode = this.mode || DIFFICULTY_MODES.medium;
@@ -1989,6 +2043,19 @@ class Game {
     ctx.fillStyle = blink;
     ctx.font      = 'bold 22px Consolas, monospace';
     ctx.fillText('TEKAN SPACE / SENTUH LAYAR UNTUK MULAI', WIDTH / 2, HEIGHT * 3 / 4 + 38);
+
+    // Credit di bawah pojok kiri
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 14px Consolas, monospace';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(0, 220, 255, 0.4)';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Credit: Azarael', 24, HEIGHT - 38);
+    ctx.fillStyle = '#00dcff';
+    ctx.fillText('        Rian', 24, HEIGHT - 20);
+    ctx.restore();
+
     ctx.textAlign = 'left';
   }
 
@@ -2027,6 +2094,17 @@ class Game {
     ctx.fillStyle = blink;
     ctx.font      = 'bold 22px Consolas, monospace';
     ctx.fillText('TEKAN SPACE / SENTUH LAYAR UNTUK MAIN LAGI', WIDTH / 2, HEIGHT * 3 / 4 + 14);
+
+    // Credit di bawah pojok kiri
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 14px Consolas, monospace';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Credit: Azarael', 24, HEIGHT - 38);
+    ctx.fillStyle = '#00dcff';
+    ctx.fillText('        Rian', 24, HEIGHT - 20);
+    ctx.restore();
+
     ctx.textAlign = 'left';
   }
 
